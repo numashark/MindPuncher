@@ -42,8 +42,7 @@
 - ゲームロジック（player, punch, enemy, combat, game など）からは描画やキー入力を呼ばず、テストできる形を保つ
 
 ## git規約
-git操作はローカルリポジトリのみ操作を行い、pushやpullは行わない。
-branchは機能ごとにdevelopから`stamina`や`enemy`などのように切り替えて作業する。
+branchは機能ごとにdevelopから`stamina`や`enemy`などのように切り替えて作業、pushし、プルリクエストまでを行う
 commitは一つの修正要件、機能要件ごとに行う
 人間が動作を確認してからdevelopへのpushを行うのでどのブランチでどのように作業したから報告すること
 
