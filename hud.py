@@ -11,6 +11,7 @@ from constants import (
 from text import draw_text
 
 BAR_MARGIN = int(10 * SCALE)
+BAR_Y = BAR_MARGIN + int(20 * SCALE)
 BAR_WIDTH = int(220 * SCALE)
 BAR_HEIGHT = int(14 * SCALE)
 LABEL_WIDTH = int(36 * SCALE)
@@ -46,31 +47,32 @@ def draw_hud(game):
     """HPバー、スタミナバー、残り時間、スコア、コンボを描画する"""
     player = game.player
     m = BAR_MARGIN
+    y = BAR_Y
 
-    draw_text(m, m, "HP", COLOR_HP_BAR)
+    draw_text(m, y, "HP", COLOR_HP_BAR)
     bx = m + LABEL_WIDTH
-    pyxel.rect(bx, m, BAR_WIDTH, BAR_HEIGHT, 0)
-    pyxel.rect(bx, m, int(BAR_WIDTH * player.hp / MAX_HP), BAR_HEIGHT, COLOR_HP_BAR)
-    pyxel.rectb(bx, m, BAR_WIDTH, BAR_HEIGHT, COLOR_TEXT)
-    draw_text(bx, m + BAR_HEIGHT + int(4 * SCALE), f"{int(player.hp)}/{MAX_HP}", COLOR_TEXT)
+    pyxel.rect(bx, y, BAR_WIDTH, BAR_HEIGHT, 0)
+    pyxel.rect(bx, y, int(BAR_WIDTH * player.hp / MAX_HP), BAR_HEIGHT, COLOR_HP_BAR)
+    pyxel.rectb(bx, y, BAR_WIDTH, BAR_HEIGHT, COLOR_TEXT)
+    draw_text(bx, y + BAR_HEIGHT + int(4 * SCALE), f"{int(player.hp)}/{MAX_HP}", COLOR_TEXT)
 
     bx = SCREEN_WIDTH - m - BAR_WIDTH
-    draw_text(bx - LABEL_WIDTH, m, "STA", COLOR_STAMINA_BAR)
+    draw_text(bx - LABEL_WIDTH, y, "STA", COLOR_STAMINA_BAR)
     base = min(player.stamina, MAX_STAMINA)
     extra = min(player.extra_total(), MAX_STAMINA)
     extra_start = min(base, MAX_STAMINA - extra)
-    pyxel.rect(bx, m, BAR_WIDTH, BAR_HEIGHT, 0)
-    pyxel.rect(bx, m, int(BAR_WIDTH * base / MAX_STAMINA), BAR_HEIGHT, COLOR_STAMINA_BAR)
+    pyxel.rect(bx, y, BAR_WIDTH, BAR_HEIGHT, 0)
+    pyxel.rect(bx, y, int(BAR_WIDTH * base / MAX_STAMINA), BAR_HEIGHT, COLOR_STAMINA_BAR)
     if extra > 0:
-        pyxel.rect(bx + int(BAR_WIDTH * extra_start / MAX_STAMINA), m, int(BAR_WIDTH * extra / MAX_STAMINA),
+        pyxel.rect(bx + int(BAR_WIDTH * extra_start / MAX_STAMINA), y, int(BAR_WIDTH * extra / MAX_STAMINA),
                    BAR_HEIGHT, COLOR_EXTRA_STAMINA)
-    pyxel.rectb(bx, m, BAR_WIDTH, BAR_HEIGHT, COLOR_TEXT)
+    pyxel.rectb(bx, y, BAR_WIDTH, BAR_HEIGHT, COLOR_TEXT)
     total = player.total_stamina()
     for kind in PUNCH_KINDS:
         tick_x = bx + int(BAR_WIDTH * PUNCH_COST[kind] / MAX_STAMINA)
-        pyxel.line(tick_x, m - int(3 * SCALE), tick_x, m + BAR_HEIGHT + int(3 * SCALE), COLOR_STAMINA_TICK)
+        pyxel.line(tick_x, y - int(3 * SCALE), tick_x, y + BAR_HEIGHT + int(3 * SCALE), COLOR_STAMINA_TICK)
         label_color = PUNCH_COLOR[kind] if total >= PUNCH_COST[kind] else COLOR_STAMINA_TICK
-        draw_text(tick_x, m + BAR_HEIGHT + int(4 * SCALE), PUNCH_LABEL[kind], label_color, center=True)
+        draw_text(tick_x, y - int(17 * SCALE), PUNCH_LABEL[kind], label_color, center=True)
 
     remain = game.remaining_seconds()
     time_color = COLOR_DANGER if remain <= TIME_WARNING_SECONDS else COLOR_TEXT
