@@ -42,8 +42,9 @@
 - ゲームロジック（player, punch, enemy, combat, game など）からは描画やキー入力を呼ばず、テストできる形を保つ
 
 ## git規約
-git操作はローカルリポジトリのみ操作を行い、pushやpullは行わない。
-commitは機能ごとに行う。
+branchは機能ごとにdevelopから`stamina`や`enemy`などのように切り替えて作業、pushし、プルリクエストまでを行う
+commitは一つの修正要件、機能要件ごとに行う
+人間が動作を確認してからdevelopへのpushを行うのでどのブランチでどのように作業したから報告すること
 
 ## コーディング規約
 - 定数は大文字のスネークケースで書く（例: `MAX_HP`、`NORMAL_PUNCH_STAMINA`）
