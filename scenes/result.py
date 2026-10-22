@@ -41,7 +41,7 @@ class ResultScene:
             draw_text(CENTER_X, SCREEN_HEIGHT * 0.85, "Enter / Space : タイトルへ", COLOR_SUB_TEXT, center=True)
             return
         draw_text(CENTER_X, SCREEN_HEIGHT * 0.46, "ランクイン！ なまえを いれてください", COLOR_ACCENT, center=True)
-        box_w, box_h = int(300 * SCALE), int(36 * SCALE)
+        box_w, box_h = int(340 * SCALE), int(44 * SCALE)
         box_y = int(SCREEN_HEIGHT * 0.53)
         pyxel.rect(CENTER_X - box_w // 2, box_y, box_w, box_h, 0)
         pyxel.rectb(CENTER_X - box_w // 2, box_y, box_w, box_h, COLOR_TEXT)

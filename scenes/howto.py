@@ -32,6 +32,6 @@ class HowtoScene:
         draw_text(CENTER_X, SCREEN_HEIGHT * 0.08, "あそびかた", COLOR_ACCENT, "m", center=True)
         y = SCREEN_HEIGHT * 0.2
         for line in HOWTO_LINES:
-            draw_text(CENTER_X, y, line, COLOR_TEXT, "m", center=True)
-            y += int(30 * SCALE)
+            draw_text(CENTER_X, y, line, COLOR_TEXT, center=True)
+            y += int(36 * SCALE)
         draw_text(CENTER_X, SCREEN_HEIGHT * 0.9, "Enter / Space : もどる", COLOR_SUB_TEXT, center=True)
