@@ -68,6 +68,8 @@ BIG_DAMAGE = 3
 KNOCKBACK_SPEED = 14 * SCALE
 # ヒットストップのフレーム数（パンチの種類ごと、当たった敵の最大の大きさ 小/中/大 ごと）
 HITSTOP_FRAMES = {NORMAL: (3, 3, 3), MID: (4, 6, 8), BIG: (6, 9, 12)}
+# 中パンチで吹き飛んだ敵がほかの敵に当たったときのヒットストップのフレーム数（当たった敵の大きさ 小/中/大 ごと）（仮）
+KNOCK_HIT_HITSTOP_FRAMES = (3, 5, 7)
 # パンチの軌跡・衝撃波を表示するフレーム数
 PUNCH_ANIM_FRAMES = {NORMAL: 10, MID: 14, BIG: 20}
 # パンチが当たったときの画面揺れの強さ

@@ -3,7 +3,7 @@ import unittest
 
 from combat import enemy_attack, release_punch, update_knockback
 from constants import (
-    BIG, BIG_PUNCH_HOLD, DAMAGE_SHAKE, ENEMY_PARAMS, HURT_FRAMES, FLYER, FLYER_HIGH_ALTITUDE, FLYER_LOW_ALTITUDE, GAME_FRAMES, HITSTOP_FRAMES, KILL_SCORE, LARGE, MAX_HP, MAX_STAMINA,
+    BIG, BIG_PUNCH_HOLD, DAMAGE_SHAKE, ENEMY_PARAMS, HURT_FRAMES, FLYER, FLYER_HIGH_ALTITUDE, FLYER_LOW_ALTITUDE, GAME_FRAMES, HITSTOP_FRAMES, KILL_SCORE, KNOCK_HIT_HITSTOP_FRAMES, LARGE, MAX_HP, MAX_STAMINA,
     MEDIUM, MID, MID_PUNCH_HOLD, MIN_RANGE, NORMAL, PUNCH_COST, SCREEN_WIDTH, SIZE_DAMAGE_BONUS,
     SMALL, WALKER,
 )
@@ -158,6 +158,23 @@ class TestCombat(unittest.TestCase):
         self.assertAlmostEqual(target.right(), big.left())
         self.assertEqual(target.hp, 1)
         self.assertFalse(target.dead)
+
+    def test_knocked_enemy_hit_causes_hitstop(self):
+        """吹き飛んだ敵がほかの敵に当たるとヒットストップが入り、当たらなければ入らない"""
+        target = make_enemy(SMALL, 0, hp=3, order=1)
+        big = make_enemy(LARGE, 200, hp=3, order=2)
+        self.game.enemies = [target, big]
+        release_punch(self.game, MID_PUNCH_HOLD)
+        self.game.hitstop = 0
+        knock_until_stop(self.game, target)
+        self.assertEqual(self.game.hitstop, KNOCK_HIT_HITSTOP_FRAMES[LARGE])
+
+        alone = make_enemy(SMALL, 0, hp=3, order=3)
+        self.game.enemies = [alone]
+        release_punch(self.game, MID_PUNCH_HOLD)
+        self.game.hitstop = 0
+        knock_until_stop(self.game, alone)
+        self.assertEqual(self.game.hitstop, 0)
 
     def test_medium_knocked_enemy_reaches_edge(self):
         """吹き飛んだ中の敵は大きさに関わらず画面端まで飛ぶ"""
