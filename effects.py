@@ -3,10 +3,11 @@ import random
 import pyxel
 
 from constants import (
-    CENTER_X, COLOR_GUARD, COLOR_TEXT_SHADOW, COLOR_TRAIL, ENEMY_BODY_COLOR, FLOAT_TEXT_FADE_FRAMES,
-    FLOAT_TEXT_FRAMES, FLOAT_TEXT_RISE_SPEED, GROUND_Y,
-    GUARD_PARTICLE_COUNT, HIT_EFFECT_RADIUS, HIT_RING_COLOR, KILL_PARTICLE_COUNT, PLAYER_HALF_WIDTH,
-    PLAYER_HEIGHT, SCALE,
+    BIG, BIG_SHOCK_FRAMES, BIG_SHOCK_WAVES, BIG_WIND_COUNT, BIG_WIND_FRAMES, BIG_WIND_SPEED, CENTER_X,
+    COLOR_GUARD, COLOR_TEXT_SHADOW, COLOR_TRAIL, COLOR_WIND, ENEMY_BODY_COLOR, ENEMY_HEIGHT,
+    FLOAT_TEXT_FADE_FRAMES, FLOAT_TEXT_FRAMES, FLOAT_TEXT_RISE_SPEED, GROUND_Y,
+    GUARD_PARTICLE_COUNT, HIT_EFFECT_RADIUS, HIT_RING_COLOR, KILL_PARTICLE_COUNT, LARGE, PLAYER_HALF_WIDTH,
+    PLAYER_HEIGHT, PUNCH_COLOR, SCALE,
 )
 from text import draw_text
 
@@ -23,6 +24,22 @@ class Effects:
         self.rings = []
         self.particles = []
         self.texts = []
+        self.shocks = []
+        self.winds = []
+
+    def add_big_punch(self, facing, reach):
+        """大パンチの射程に、走り抜ける衝撃波と風圧の筋を出す"""
+        x1 = CENTER_X + facing * PLAYER_HALF_WIDTH
+        x2 = CENTER_X + facing * (PLAYER_HALF_WIDTH + reach)
+        top = GROUND_Y - ENEMY_HEIGHT[LARGE] - int(14 * SCALE)
+        self.shocks.append({"x1": x1, "x2": x2, "top": top, "life": BIG_SHOCK_FRAMES})
+        for _ in range(BIG_WIND_COUNT):
+            self.winds.append({
+                "x": x1 + (x2 - x1) * self.rng.uniform(0, 0.4), "y": self.rng.uniform(top, GROUND_Y - 2 * SCALE),
+                "x2": x2, "vx": facing * BIG_WIND_SPEED * self.rng.uniform(0.7, 1.3),
+                "length": self.rng.uniform(20, 50) * SCALE, "color": self.rng.choice(COLOR_WIND),
+                "life": self.rng.randint(BIG_WIND_FRAMES // 2, BIG_WIND_FRAMES),
+            })
 
     def add_ring(self, enemy, kind, life):
         """パンチが当たった敵の位置に、威力とヒットストップに応じた衝撃の輪を出す"""
@@ -87,9 +104,39 @@ class Effects:
             t["y"] -= FLOAT_TEXT_RISE_SPEED * t["life"] / FLOAT_TEXT_FRAMES
             t["life"] -= 1
         self.texts = [t for t in self.texts if t["life"] > 0]
+        for s in self.shocks:
+            s["life"] -= 1
+        self.shocks = [s for s in self.shocks if s["life"] > 0]
+        for w in self.winds:
+            w["x"] += w["vx"]
+            w["life"] -= 1
+        self.winds = [w for w in self.winds if w["life"] > 0 and (w["x2"] - w["x"]) * w["vx"] > 0]
+
+    def draw_big_punch(self):
+        """大パンチの衝撃波と風圧の筋を描画する"""
+        for s in self.shocks:
+            progress = 1 - s["life"] / BIG_SHOCK_FRAMES
+            left, right = min(s["x1"], s["x2"]), max(s["x1"], s["x2"])
+            height = GROUND_Y - s["top"]
+            pyxel.dither(0.35 * (1 - progress) ** 2)
+            pyxel.rect(left, s["top"], right - left, height, 7)
+            pyxel.dither(1.0)
+            for i in range(BIG_SHOCK_WAVES):
+                p = progress * 1.6 - i * 0.2
+                if not 0 <= p <= 1:
+                    continue
+                x = s["x1"] + (s["x2"] - s["x1"]) * p
+                w = int((10 + 20 * p) * SCALE)
+                pyxel.ellib(x - w // 2, s["top"], w, height, PUNCH_COLOR[BIG] if i == 0 else 7)
+        for w in self.winds:
+            pyxel.dither(min(1.0, w["life"] / (BIG_WIND_FRAMES / 2)))
+            tail = w["x"] - (w["length"] if w["vx"] > 0 else -w["length"])
+            pyxel.line(tail, w["y"], w["x"], w["y"], w["color"])
+        pyxel.dither(1.0)
 
     def draw(self):
         """演出を描画する"""
+        self.draw_big_punch()
         for ring in self.rings:
             progress = 1 - ring["life"] / ring["total"]
             r = int(ring["radius"] * (0.3 + 0.7 * progress))

@@ -66,6 +66,7 @@ def release_punch(game, hold):
 
     if kind == BIG:
         game.shake = max(game.shake, PUNCH_SHAKE[BIG])
+        game.effects.add_big_punch(player.facing, reach)
     if hits:
         biggest = max(hits, key=lambda e: e.size)
         game.hitstop = HITSTOP_FRAMES[kind][biggest.size]
