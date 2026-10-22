@@ -73,7 +73,8 @@ def draw_hud(game):
         pyxel.line(tick_x, y - int(3 * SCALE), tick_x, y + BAR_HEIGHT + int(3 * SCALE), COLOR_STAMINA_TICK)
         label_color = PUNCH_COLOR[kind] if total >= PUNCH_COST[kind] else COLOR_STAMINA_TICK
         draw_text(tick_x, y - int(17 * SCALE), PUNCH_LABEL[kind], label_color, center=True)
-    draw_text(bx, y + BAR_HEIGHT + int(4 * SCALE), f"{int(player.stamina)}/{MAX_STAMINA}", COLOR_TEXT)
+    stamina_text = f"{int(player.stamina)}+{player.extra_total()}" if player.extra_total() > 0 else f"{int(player.stamina)}"
+    draw_text(bx, y + BAR_HEIGHT + int(4 * SCALE), f"{stamina_text}/{MAX_STAMINA}", COLOR_TEXT)
 
     remain = game.remaining_seconds()
     time_color = COLOR_DANGER if remain <= TIME_WARNING_SECONDS else COLOR_TEXT
