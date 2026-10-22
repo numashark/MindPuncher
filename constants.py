@@ -23,11 +23,11 @@ FINISH_TEXT_FRAMES = 60
 
 MAX_HP = 100
 MAX_STAMINA = 100
-LOW_HP = 20
+LOW_HP = 30
 # チャージしていないときの1フレームごとのスタミナ自然回復量（仮）
-STAMINA_REGEN = 0.1
-# HPが20を下回っているときの1フレームごとのスタミナ自然回復量（仮）
-STAMINA_REGEN_LOW_HP = 0.25
+STAMINA_REGEN = 0.25
+# HPが30を下回っているときの1フレームごとのスタミナ自然回復量（仮）
+STAMINA_REGEN_LOW_HP = 0.5
 EXTRA_STAMINA_FRAMES = 120
 # プレイヤーの横幅の半分と高さ
 PLAYER_HALF_WIDTH = int(18 * SCALE)
@@ -35,7 +35,7 @@ PLAYER_HEIGHT = int(80 * SCALE)
 
 NORMAL, MID, BIG = "normal", "mid", "big"
 PUNCH_KINDS = (NORMAL, MID, BIG)
-MID_PUNCH_HOLD = 30
+MID_PUNCH_HOLD = 15
 BIG_PUNCH_HOLD = 60
 NO_STAMINA_CHARGE_LIMIT = 10
 # チャージゲージが満タンになる長押しフレーム数（仮）
@@ -46,13 +46,13 @@ CHARGE_GAUGE_HEIGHT = int(8 * SCALE)
 # 大パンチのチャージ中に拳が点滅する周期フレーム数（仮）
 GLOVE_BLINK_FRAMES = 4
 # パンチごとのスタミナ消費量（仮）
-PUNCH_COST = {NORMAL: 10, MID: 25, BIG: 40}
+PUNCH_COST = {NORMAL: 5, MID: 20, BIG: 40}
 # 通常パンチの射程（最低射程）（仮）
 MIN_RANGE = int(60 * SCALE)
 # 中パンチの射程（仮）
-MID_RANGE = int(150 * SCALE)
+MID_RANGE = int(180 * SCALE)
 # 大パンチの基本射程（仮）
-BIG_RANGE = int(220 * SCALE)
+BIG_RANGE = int(300 * SCALE)
 # 大パンチで60フレームを超えて長押ししたとき1フレームごとに伸びる射程（仮）
 BIG_RANGE_GROWTH = 2.5 * SCALE
 # 大パンチの射程の上限（仮）
@@ -130,10 +130,10 @@ SPAWN_INTERVAL_START = 75
 SPAWN_INTERVAL_END = 25
 # 敵の体力 1/2/3 の出やすさ（ゲーム開始時と終了時。間は時間に応じて変化）（仮）
 ENEMY_HP_WEIGHTS_START = (6, 3, 1)
-ENEMY_HP_WEIGHTS_END = (2, 4, 5)
+ENEMY_HP_WEIGHTS_END = (3, 2, 5)
 # 敵の種類と大きさの出やすさ（仮）
-ENEMY_KIND_WEIGHTS = (5, 3, 2)
-ENEMY_SIZE_WEIGHTS = (5, 3, 2)
+ENEMY_KIND_WEIGHTS = (5, 3, 3)
+ENEMY_SIZE_WEIGHTS = (3, 5, 2)
 
 RANKING_SIZE = 5
 NAME_MAX_LENGTH = 10
@@ -175,7 +175,7 @@ COLOR_PLAYER = 9
 COLOR_PLAYER_SKIN = 15
 COLOR_GLOVE = 8
 # 背景の星の数（仮）
-STAR_COUNT = 40
+STAR_COUNT = 20
 # HPが20を下回ったときの画面の縁の点滅周期フレーム数と縁の太さ（仮）
 DANGER_BLINK_FRAMES = 15
 DANGER_BORDER_WIDTH = int(6 * SCALE)
