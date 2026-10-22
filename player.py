@@ -12,7 +12,8 @@ class Player:
         """プレイヤーを初期状態にする"""
         self.hp = MAX_HP
         self.stamina = MAX_STAMINA
-        self.extra_stamina = []
+        self.extra_stamina = 0
+        self.extra_timer = 0
         self.facing = 1
         self.charging = False
         self.hold = 0
@@ -22,11 +23,11 @@ class Player:
 
     def total_stamina(self):
         """上限を超えた分も含めた現在のスタミナを返す"""
-        return self.stamina + sum(amount for amount, _ in self.extra_stamina)
+        return self.stamina + self.extra_stamina
 
     def extra_total(self):
         """上限を超えた分のスタミナの合計を返す"""
-        return sum(amount for amount, _ in self.extra_stamina)
+        return self.extra_stamina
 
     def can_punch(self):
         """通常パンチを出せるだけのスタミナがあるかを返す"""
@@ -69,15 +70,9 @@ class Player:
 
     def use_stamina(self, amount):
         """スタミナを消費する。上限を超えた分から先に使う"""
-        while amount > 0 and self.extra_stamina:
-            extra, frames = self.extra_stamina[0]
-            used = min(extra, amount)
-            amount -= used
-            if extra - used > 0:
-                self.extra_stamina[0] = (extra - used, frames)
-            else:
-                self.extra_stamina.pop(0)
-        self.stamina -= amount
+        used = min(self.extra_stamina, amount)
+        self.extra_stamina -= used
+        self.stamina -= amount - used
 
     def gain_stamina(self, amount):
         """スタミナを上限まで回復する"""
@@ -92,15 +87,19 @@ class Player:
         if self.is_guarding() and side == self.facing:
             damage = math.ceil(damage / 2)
         self.hp = max(0, self.hp - damage)
-        self.extra_stamina.append((damage, EXTRA_STAMINA_FRAMES))
+        self.extra_stamina += damage
+        self.extra_timer = EXTRA_STAMINA_FRAMES
         return damage
 
     def update_stamina(self):
-        """チャージしていない間のスタミナ自然回復と、上限を超えた分のスタミナの時間切れを処理する"""
+        """チャージしていない間のスタミナ自然回復と、最後に攻撃を受けてから時間が経った上限超えのスタミナの消去を行う"""
         if not self.charging:
             regen = STAMINA_REGEN_LOW_HP if self.hp < LOW_HP else STAMINA_REGEN
             self.gain_stamina(regen)
-        self.extra_stamina = [(amount, frames - 1) for amount, frames in self.extra_stamina if frames > 1]
+        if self.extra_timer > 0:
+            self.extra_timer -= 1
+            if self.extra_timer == 0:
+                self.extra_stamina = 0
 
     def update_timers(self):
         """パンチの演出と被ダメージの点滅の残りフレーム数を減らす"""

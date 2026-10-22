@@ -46,8 +46,8 @@ class TestPlayer(unittest.TestCase):
         self.assertIsNone(player.preview_punch())
 
     def test_extra_stamina_expires(self):
-        """受けたダメージ分のスタミナが上限を超えて増え、60フレーム後に消える"""
-        self.assertEqual(EXTRA_STAMINA_FRAMES, 60)
+        """受けたダメージ分のスタミナが上限を超えて増え、120フレーム後に消える"""
+        self.assertEqual(EXTRA_STAMINA_FRAMES, 120)
         player = Player()
         player.take_damage(10, -player.facing)
         self.assertEqual(player.total_stamina(), MAX_STAMINA + 10)
@@ -57,6 +57,19 @@ class TestPlayer(unittest.TestCase):
         player.update_stamina()
         self.assertEqual(player.extra_total(), 0)
         self.assertEqual(player.total_stamina(), MAX_STAMINA)
+
+    def test_extra_stamina_timer_resets_on_damage(self):
+        """攻撃を受けるたびに消えるまでの時間が戻り、攻撃を受けずに120フレーム経つと全部消える"""
+        player = Player()
+        player.take_damage(10, -player.facing)
+        for _ in range(EXTRA_STAMINA_FRAMES - 10):
+            player.update_stamina()
+        player.take_damage(5, -player.facing)
+        for _ in range(EXTRA_STAMINA_FRAMES - 1):
+            player.update_stamina()
+        self.assertEqual(player.extra_total(), 15)
+        player.update_stamina()
+        self.assertEqual(player.extra_total(), 0)
 
     def test_use_stamina_uses_extra_first(self):
         """上限を超えた分のスタミナから先に使う"""
