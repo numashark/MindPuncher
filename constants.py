@@ -176,7 +176,7 @@ COLOR_PLAYER_SKIN = 15
 COLOR_GLOVE = 8
 # 背景の星の数
 STAR_COUNT = 20
-# HPが20を下回ったときの画面の縁の点滅周期フレーム数と縁の太さ
+# HPが30を下回ったときの画面の縁の点滅周期フレーム数と縁の太さ
 DANGER_BLINK_FRAMES = 15
 DANGER_BORDER_WIDTH = int(6 * SCALE)
 # 射程表示の濃さ（0～1）

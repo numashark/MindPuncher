@@ -80,7 +80,7 @@ class TestPlayer(unittest.TestCase):
         self.assertEqual(player.stamina, MAX_STAMINA - 5)
 
     def test_regen_faster_when_low_hp(self):
-        """HPが20を下回るとスタミナの回復速度が上がる"""
+        """HPが30を下回るとスタミナの回復速度が上がる"""
         player = Player()
         player.stamina = 0
         player.update_stamina()

@@ -85,7 +85,7 @@ def draw_hud(game):
 
 
 def draw_danger_border(player, frame):
-    """HPが20を下回っているとき、画面の縁を赤く点滅させる"""
+    """HPが30を下回っているとき、画面の縁を赤く点滅させる"""
     if player.hp >= LOW_HP or frame // DANGER_BLINK_FRAMES % 2 == 1:
         return
     for i in range(DANGER_BORDER_WIDTH):
