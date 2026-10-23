@@ -1,6 +1,6 @@
 from constants import (
     BIG, BIG_PUNCH_HOLD, BIG_RANGE, BIG_RANGE_GROWTH, BIG_RANGE_MAX, MID, MID_PUNCH_HOLD,
-    MID_RANGE, MIN_RANGE, NORMAL, PUNCH_COST, PUNCH_KINDS,
+    MID_RANGE, MID_RANGE_MAX, MIN_RANGE, NORMAL, PUNCH_COST, PUNCH_KINDS,
 )
 
 
@@ -28,5 +28,6 @@ def punch_range(kind, hold):
     if kind == BIG:
         return min(BIG_RANGE + max(0, hold - BIG_PUNCH_HOLD) * BIG_RANGE_GROWTH, BIG_RANGE_MAX)
     if kind == MID:
-        return MID_RANGE
+        rate = min(1, max(0, hold - MID_PUNCH_HOLD) / (BIG_PUNCH_HOLD - 1 - MID_PUNCH_HOLD))
+        return MID_RANGE + (MID_RANGE_MAX - MID_RANGE) * rate
     return MIN_RANGE
