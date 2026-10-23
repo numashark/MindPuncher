@@ -1,14 +1,15 @@
 import json
+import sys
 from pathlib import Path
 
-import pyxel
-
-from constants import DEFAULT_NAME, RANKING_FILE_NAME, RANKING_SIZE, USER_DATA_APP, USER_DATA_VENDOR
+from constants import BASE_DIR, DEFAULT_NAME, RANKING_FILE_NAME, RANKING_SIZE
 
 
 def default_path():
-    """ランキングを保存するファイルのパスを返す"""
-    return Path(pyxel.user_data_dir(USER_DATA_VENDOR, USER_DATA_APP)) / RANKING_FILE_NAME
+    """ランキングを保存するファイルのパスを返す。実行ファイルのときは実行ファイルと同じフォルダに保存する"""
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent / RANKING_FILE_NAME
+    return BASE_DIR / RANKING_FILE_NAME
 
 
 def load(path):
