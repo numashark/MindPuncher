@@ -119,12 +119,12 @@ class TestCombat(unittest.TestCase):
         self.assertEqual(game.score.combo, 0)
 
     def test_enemy_damage_by_size(self):
-        """敵のダメージは大きさが中で+5、大で+10される"""
+        """敵のダメージは大きさが中で+5、大で+7される"""
         base = ENEMY_PARAMS[WALKER]["damage"]
         self.assertEqual(make_enemy(SMALL, 0).damage, base)
         self.assertEqual(make_enemy(MEDIUM, 0).damage, base + 5)
-        self.assertEqual(make_enemy(LARGE, 0).damage, base + 10)
-        self.assertEqual(SIZE_DAMAGE_BONUS, (0, 5, 10))
+        self.assertEqual(make_enemy(LARGE, 0).damage, base + 7)
+        self.assertEqual(SIZE_DAMAGE_BONUS, (0, 5, 7))
 
     def test_mid_punch_damages_all_and_knocks_one(self):
         """中パンチは射程内の全員に1ダメージ、最低射程内の1体は2ダメージで吹き飛ぶ"""
