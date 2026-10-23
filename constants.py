@@ -49,10 +49,12 @@ GLOVE_BLINK_FRAMES = 4
 PUNCH_COST = {NORMAL: 5, MID: 20, BIG: 40}
 # 通常パンチの射程（最低射程）
 MIN_RANGE = int(60 * SCALE)
-# 中パンチの射程
+# 中パンチの初期射程（15フレーム長押ししたときの射程）
 MID_RANGE = int(180 * SCALE)
+# 中パンチの最大射程（大パンチになる直前まで長押ししたときの射程）
+MID_RANGE_MAX = int(240 * SCALE)
 # 大パンチの基本射程
-BIG_RANGE = int(300 * SCALE)
+BIG_RANGE = int(320 * SCALE)
 # 大パンチで60フレームを超えて長押ししたとき1フレームごとに伸びる射程
 BIG_RANGE_GROWTH = 2.5 * SCALE
 # 大パンチの射程の上限

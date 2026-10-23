@@ -1,6 +1,6 @@
 import unittest
 
-from constants import BIG, BIG_RANGE, BIG_RANGE_GROWTH, MID, MID_RANGE, MIN_RANGE, NORMAL, PUNCH_COST
+from constants import BIG, BIG_RANGE, BIG_RANGE_GROWTH, MID, MID_RANGE, MID_RANGE_MAX, MIN_RANGE, NORMAL, PUNCH_COST
 from punch import affordable_kind, kind_for_hold, punch_range
 
 
@@ -23,11 +23,19 @@ class TestPunch(unittest.TestCase):
     def test_range_order(self):
         """射程は通常＜中＜大で、大パンチは長押しした分だけ伸びる"""
         self.assertEqual(punch_range(NORMAL, 1), MIN_RANGE)
-        self.assertEqual(punch_range(MID, 30), MID_RANGE)
+        self.assertEqual(punch_range(MID, 15), MID_RANGE)
         self.assertEqual(punch_range(BIG, 60), BIG_RANGE)
         self.assertEqual(punch_range(BIG, 62), BIG_RANGE + 2 * BIG_RANGE_GROWTH)
         self.assertLess(MIN_RANGE, MID_RANGE)
-        self.assertLess(MID_RANGE, BIG_RANGE)
+        self.assertLess(MID_RANGE_MAX, BIG_RANGE)
+
+    def test_mid_range_grows(self):
+        """中パンチは長押しした分だけ初期射程から最大射程まで伸びる"""
+        self.assertLess(MID_RANGE, punch_range(MID, 30))
+        self.assertLess(punch_range(MID, 30), punch_range(MID, 45))
+        self.assertLess(punch_range(MID, 45), MID_RANGE_MAX)
+        self.assertEqual(punch_range(MID, 59), MID_RANGE_MAX)
+        self.assertEqual(punch_range(MID, 90), MID_RANGE_MAX)
 
     def test_cost_order(self):
         """スタミナ消費量は通常＜中＜大"""
