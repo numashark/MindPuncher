@@ -8,13 +8,14 @@ from constants import (
     PLAYER_HALF_WIDTH, PUNCH_COLOR, PUNCH_COST, PUNCH_KINDS, PUNCH_LABEL,
     RANGE_DITHER, SCALE, SCREEN_HEIGHT, SCREEN_WIDTH, TIME_WARNING_SECONDS,
 )
-from text import draw_text
+from text import draw_text, text_width
 
 BAR_MARGIN = int(10 * SCALE)
-BAR_Y = BAR_MARGIN + int(20 * SCALE)
-BAR_WIDTH = int(220 * SCALE)
+BAR_Y = BAR_MARGIN + int(24 * SCALE)
+BAR_WIDTH = int(260 * SCALE)
 BAR_HEIGHT = int(14 * SCALE)
-LABEL_WIDTH = int(36 * SCALE)
+LABEL_WIDTH = int(40 * SCALE)
+TICK_LABEL_GAP = int(4 * SCALE)
 
 
 def draw_range(game):
@@ -36,7 +37,7 @@ def draw_range(game):
     if player.charging:
         pyxel.line(left, top, right, top, color)
         pyxel.line(x2, top, x2, GROUND_Y, color)
-        draw_text(x2 - f * int(20 * SCALE), top - int(16 * SCALE), PUNCH_LABEL[kind], color, center=True)
+        draw_text(x2 - f * int(24 * SCALE), top - int(22 * SCALE), PUNCH_LABEL[kind], color, center=True)
     for e in hit_enemies(kind, punch_targets(game, reach, f)):
         ty = int(GROUND_Y - e.altitude - e.height) - ENEMY_HP_BAR_GAP - ENEMY_HP_BAR_HEIGHT - int(4 * SCALE)
         pyxel.tri(e.x - int(5 * SCALE), ty - int(6 * SCALE), e.x + int(5 * SCALE), ty - int(6 * SCALE),
@@ -49,7 +50,7 @@ def draw_hud(game):
     m = BAR_MARGIN
     y = BAR_Y
 
-    draw_text(m, y, "HP", COLOR_HP_BAR)
+    draw_text(m, y - int(2 * SCALE), "HP", COLOR_HP_BAR)
     bx = m + LABEL_WIDTH
     pyxel.rect(bx, y, BAR_WIDTH, BAR_HEIGHT, 0)
     pyxel.rect(bx, y, int(BAR_WIDTH * player.hp / MAX_HP), BAR_HEIGHT, COLOR_HP_BAR)
@@ -57,7 +58,7 @@ def draw_hud(game):
     draw_text(bx, y + BAR_HEIGHT + int(4 * SCALE), f"{int(player.hp)}/{MAX_HP}", COLOR_TEXT)
 
     bx = SCREEN_WIDTH - m - BAR_WIDTH
-    draw_text(bx - LABEL_WIDTH, y, "STA", COLOR_STAMINA_BAR)
+    draw_text(bx - LABEL_WIDTH, y - int(2 * SCALE), "STA", COLOR_STAMINA_BAR)
     base = min(player.stamina, MAX_STAMINA)
     extra = min(player.extra_total(), MAX_STAMINA)
     extra_start = min(base, MAX_STAMINA - extra)
@@ -68,20 +69,25 @@ def draw_hud(game):
                    BAR_HEIGHT, COLOR_EXTRA_STAMINA)
     pyxel.rectb(bx, y, BAR_WIDTH, BAR_HEIGHT, COLOR_TEXT)
     total = player.total_stamina()
+    label_right = None
     for kind in PUNCH_KINDS:
         tick_x = bx + int(BAR_WIDTH * PUNCH_COST[kind] / MAX_STAMINA)
         pyxel.line(tick_x, y - int(3 * SCALE), tick_x, y + BAR_HEIGHT + int(3 * SCALE), COLOR_STAMINA_TICK)
         label_color = PUNCH_COLOR[kind] if total >= PUNCH_COST[kind] else COLOR_STAMINA_TICK
-        draw_text(tick_x, y - int(17 * SCALE), PUNCH_LABEL[kind], label_color, center=True)
+        label_x = tick_x - text_width(PUNCH_LABEL[kind]) // 2
+        if label_right is not None:
+            label_x = max(label_x, label_right + TICK_LABEL_GAP)
+        label_right = label_x + text_width(PUNCH_LABEL[kind])
+        draw_text(label_x, y - int(22 * SCALE), PUNCH_LABEL[kind], label_color)
     stamina_text = f"{int(player.stamina)}+{player.extra_total()}" if player.extra_total() > 0 else f"{int(player.stamina)}"
     draw_text(bx, y + BAR_HEIGHT + int(4 * SCALE), f"{stamina_text}/{MAX_STAMINA}", COLOR_TEXT)
 
     remain = game.remaining_seconds()
     time_color = COLOR_DANGER if remain <= TIME_WARNING_SECONDS else COLOR_TEXT
     draw_text(CENTER_X, m, f"TIME {remain}", time_color, "m", center=True)
-    draw_text(CENTER_X, m + int(30 * SCALE), f"SCORE {game.score.score}", COLOR_SCORE_TEXT, center=True)
+    draw_text(CENTER_X, m + int(36 * SCALE), f"SCORE {game.score.score}", COLOR_SCORE_TEXT, center=True)
     if game.score.combo >= 2:
-        draw_text(CENTER_X, m + int(48 * SCALE), f"{game.score.combo} COMBO", COLOR_COMBO_TEXT, center=True)
+        draw_text(CENTER_X, m + int(58 * SCALE), f"{game.score.combo} COMBO", COLOR_COMBO_TEXT, center=True)
 
 
 def draw_danger_border(player, frame):

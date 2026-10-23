@@ -39,19 +39,19 @@ class TitleScene:
             draw_text(CENTER_X, y, item, COLOR_ACCENT if selected else COLOR_SUB_TEXT, "m", center=True)
             if selected:
                 ax = CENTER_X - int(130 * SCALE)
-                pyxel.tri(ax, y + int(4 * SCALE), ax, y + int(20 * SCALE), ax + int(12 * SCALE),
-                          y + int(12 * SCALE), COLOR_ACCENT)
+                pyxel.tri(ax, y + int(6 * SCALE), ax, y + int(26 * SCALE), ax + int(14 * SCALE),
+                          y + int(16 * SCALE), COLOR_ACCENT)
             y += int(44 * SCALE)
 
-        y = SCREEN_HEIGHT * 0.66
+        y = SCREEN_HEIGHT * 0.62
         draw_text(CENTER_X, y, "- RANKING -", COLOR_RANKING_TITLE, center=True)
-        y += int(20 * SCALE)
+        y += int(26 * SCALE)
         if not self.app.ranking:
             draw_text(CENTER_X, y, "まだ きろくが ありません", COLOR_SUB_TEXT, center=True)
         for i, entry in enumerate(self.app.ranking):
-            draw_text(CENTER_X - int(110 * SCALE), y, f"{i + 1}. {entry['name']}", COLOR_TEXT)
-            draw_text(CENTER_X + int(40 * SCALE), y, f"{entry['score']:>7}", COLOR_TEXT)
-            y += int(16 * SCALE)
+            draw_text(CENTER_X - int(130 * SCALE), y, f"{i + 1}. {entry['name']}", COLOR_TEXT)
+            draw_text(CENTER_X + int(50 * SCALE), y, f"{entry['score']:>7}", COLOR_TEXT)
+            y += int(22 * SCALE)
 
         draw_text(CENTER_X, SCREEN_HEIGHT * 0.94,
                   "W/S・↑/↓ : せんたく   Enter/Space : けってい   ESC : しゅうりょう",

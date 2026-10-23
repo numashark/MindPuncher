@@ -15,7 +15,7 @@ BASE_DIR = Path(__file__).resolve().parent
 FONT_PATH = BASE_DIR / "assets" / "x10y12pxDonguriDuel.ttf"
 FONT_SCALE = max(1, round(SCALE))
 # 文字の大きさごとのフォントサイズ
-FONT_SIZES = {"s": 12 * FONT_SCALE, "m": 24 * FONT_SCALE, "l": 48 * FONT_SCALE}
+FONT_SIZES = {"s": int(18 * SCALE), "m": int(32 * SCALE), "l": int(64 * SCALE)}
 
 GAME_FRAMES = 120 * FPS
 # ゲームオーバー/クリアのテキストを表示してからスコア確認画面に移るまでのフレーム数
