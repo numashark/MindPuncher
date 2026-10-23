@@ -7,13 +7,14 @@ from constants import (
 )
 from render import draw_stage
 from score import clear_bonus
-from text import draw_text
+from text import draw_clear_mark, draw_text, text_width
 
 
 class ResultScene:
     def __init__(self, app, score, cleared):
         """スコア確認画面を作る。ゲームクリアしていたらボーナス点を加え、上位5名に入るなら名前入力を行う"""
         self.app = app
+        self.cleared = cleared
         self.base_score = score
         self.bonus = clear_bonus(cleared)
         self.score = score + self.bonus
@@ -32,7 +33,7 @@ class ResultScene:
         if controls.backspace_pressed():
             self.name = self.name[:-1]
         if controls.confirm_name_pressed():
-            index = self.app.save_score(ranking.entry_name(self.name), self.score)
+            index = self.app.save_score(ranking.entry_name(self.name), self.score, self.cleared)
             self.app.show_ranking(index)
 
     def draw(self):
@@ -42,7 +43,9 @@ class ResultScene:
         if self.bonus:
             draw_text(CENTER_X, SCREEN_HEIGHT * 0.24, f"SCORE {self.base_score}", COLOR_TEXT, "m", center=True)
             draw_text(CENTER_X, SCREEN_HEIGHT * 0.31, f"CLEAR BONUS +{self.bonus}", COLOR_ACCENT, "m", center=True)
-            draw_text(CENTER_X, SCREEN_HEIGHT * 0.38, f"TOTAL {self.score}", COLOR_TEXT, "m", center=True)
+            total = f"TOTAL {self.score}"
+            draw_text(CENTER_X, SCREEN_HEIGHT * 0.38, total, COLOR_TEXT, "m", center=True)
+            draw_clear_mark(CENTER_X + text_width(total, "m") // 2, SCREEN_HEIGHT * 0.38, "m")
         else:
             draw_text(CENTER_X, SCREEN_HEIGHT * 0.32, f"SCORE {self.score}", COLOR_TEXT, "m", center=True)
         if not self.entering:

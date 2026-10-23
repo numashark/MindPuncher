@@ -8,12 +8,13 @@ import ranking
 class TestRanking(unittest.TestCase):
     def test_insert_keeps_top_five(self):
         """ランキングは上位5名だけを高い順に残す"""
-        board = [{"name": f"P{i}", "score": s} for i, s in enumerate((500, 400, 300, 200, 100))]
+        board = [{"name": f"P{i}", "score": s, "clear": False} for i, s in enumerate((500, 400, 300, 200, 100))]
         self.assertTrue(ranking.qualifies(board, 150))
         self.assertFalse(ranking.qualifies(board, 100))
-        new_board, index = ranking.insert(board, "NEW", 350)
+        new_board, index = ranking.insert(board, "NEW", 350, True)
         self.assertEqual(index, 2)
         self.assertEqual([d["score"] for d in new_board], [500, 400, 350, 300, 200])
+        self.assertTrue(new_board[index]["clear"])
 
     def test_empty_name_becomes_player(self):
         """名前が0文字のときはPLAYERになる"""
@@ -24,10 +25,17 @@ class TestRanking(unittest.TestCase):
         """保存したランキングを読み込める"""
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "sub" / "ranking.json"
-            board = [{"name": "ABC123", "score": 1000}]
+            board = [{"name": "ABC123", "score": 1000, "clear": True}, {"name": "DEF", "score": 500, "clear": False}]
             ranking.save(path, board)
             self.assertEqual(ranking.load(path), board)
             self.assertEqual(ranking.load(Path(tmp) / "missing.json"), [])
+
+    def test_load_old_ranking_without_clear(self):
+        """クリアしたかどうかが保存されていない以前のランキングはクリアしていない扱いで読み込む"""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "ranking.json"
+            ranking.save(path, [{"name": "OLD", "score": 300}])
+            self.assertEqual(ranking.load(path), [{"name": "OLD", "score": 300, "clear": False}])
 
 
 if __name__ == "__main__":

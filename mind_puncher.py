@@ -59,10 +59,10 @@ class App:
         from scenes.result import ResultScene
         self.scene = ResultScene(self, score, cleared)
 
-    def save_score(self, name, score):
-        """スコアをランキングに登録して保存し、登録された順位（0始まり）を返す"""
+    def save_score(self, name, score, cleared):
+        """スコアをランキングに登録して保存し、登録された順位（0始まり）を返す。cleared はゲームクリアしたかどうか"""
         import ranking
-        self.ranking, index = ranking.insert(self.ranking, name, score)
+        self.ranking, index = ranking.insert(self.ranking, name, score, cleared)
         ranking.save(self.ranking_path, self.ranking)
         return index
 

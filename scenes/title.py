@@ -6,7 +6,7 @@ from constants import (
     SCREEN_HEIGHT,
 )
 from render import draw_stage
-from text import draw_text
+from text import draw_clear_mark, draw_text, text_width
 
 
 class TitleScene:
@@ -50,7 +50,10 @@ class TitleScene:
             draw_text(CENTER_X, y, "まだ きろくが ありません", COLOR_SUB_TEXT, center=True)
         for i, entry in enumerate(self.app.ranking):
             draw_text(CENTER_X - int(130 * SCALE), y, f"{i + 1}. {entry['name']}", COLOR_TEXT)
-            draw_text(CENTER_X + int(50 * SCALE), y, f"{entry['score']:>7}", COLOR_TEXT)
+            score = f"{entry['score']:>7}"
+            draw_text(CENTER_X + int(50 * SCALE), y, score, COLOR_TEXT)
+            if entry["clear"]:
+                draw_clear_mark(CENTER_X + int(50 * SCALE) + text_width(score), y)
             y += int(22 * SCALE)
 
         draw_text(CENTER_X, SCREEN_HEIGHT * 0.94,

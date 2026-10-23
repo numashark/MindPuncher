@@ -15,7 +15,8 @@ def load(path):
     """ランキングを読み込む。読み込めないときは空のランキングを返す"""
     try:
         data = json.loads(Path(path).read_text(encoding="utf-8"))
-        return [{"name": str(d["name"]), "score": int(d["score"])} for d in data][:RANKING_SIZE]
+        return [{"name": str(d["name"]), "score": int(d["score"]), "clear": bool(d.get("clear", False))}
+                for d in data][:RANKING_SIZE]
     except (OSError, ValueError, KeyError, TypeError):
         return []
 
@@ -37,9 +38,9 @@ def qualifies(ranking, score):
     return len(ranking) < RANKING_SIZE or score > ranking[-1]["score"]
 
 
-def insert(ranking, name, score):
-    """ランキングに登録し、新しいランキングと登録された順位（0始まり）を返す"""
-    entry = {"name": name, "score": score}
+def insert(ranking, name, score, cleared):
+    """ランキングに登録し、新しいランキングと登録された順位（0始まり）を返す。cleared はゲームクリアしたかどうか"""
+    entry = {"name": name, "score": score, "clear": cleared}
     new_ranking = sorted(ranking + [entry], key=lambda d: -d["score"])[:RANKING_SIZE]
     index = next((i for i, d in enumerate(new_ranking) if d is entry), -1)
     return new_ranking, index
