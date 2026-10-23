@@ -58,7 +58,7 @@ class HowtoScene:
         draw_text(CENTER_X, SCREEN_HEIGHT * 0.08, title, COLOR_ACCENT, "m", center=True)
         y = SCREEN_HEIGHT * 0.22
         for line in lines:
-            draw_text(CENTER_X, y, line, COLOR_TEXT, center=True)
+            draw_text(CENTER_X, y, line, COLOR_TEXT, "howto", center=True)
             y += int(44 * SCALE)
 
         mid_y = SCREEN_HEIGHT // 2
