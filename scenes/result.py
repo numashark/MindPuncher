@@ -6,14 +6,17 @@ from constants import (
     CENTER_X, COLOR_ACCENT, COLOR_SUB_TEXT, COLOR_TEXT, NAME_MAX_LENGTH, SCALE, SCREEN_HEIGHT,
 )
 from render import draw_stage
+from score import clear_bonus
 from text import draw_text
 
 
 class ResultScene:
-    def __init__(self, app, score):
-        """スコア確認画面を作る。上位5名に入るなら名前入力を行う"""
+    def __init__(self, app, score, cleared):
+        """スコア確認画面を作る。ゲームクリアしていたらボーナス点を加え、上位5名に入るなら名前入力を行う"""
         self.app = app
-        self.score = score
+        self.base_score = score
+        self.bonus = clear_bonus(cleared)
+        self.score = score + self.bonus
         self.entering = ranking.qualifies(app.ranking, score)
         self.name = ""
 
@@ -36,7 +39,12 @@ class ResultScene:
         """スコアと名前入力欄を描画する"""
         draw_stage()
         draw_text(CENTER_X, SCREEN_HEIGHT * 0.12, "RESULT", COLOR_ACCENT, "l", center=True)
-        draw_text(CENTER_X, SCREEN_HEIGHT * 0.32, f"SCORE {self.score}", COLOR_TEXT, "m", center=True)
+        if self.bonus:
+            draw_text(CENTER_X, SCREEN_HEIGHT * 0.24, f"SCORE {self.base_score}", COLOR_TEXT, "m", center=True)
+            draw_text(CENTER_X, SCREEN_HEIGHT * 0.31, f"CLEAR BONUS +{self.bonus}", COLOR_ACCENT, "m", center=True)
+            draw_text(CENTER_X, SCREEN_HEIGHT * 0.38, f"TOTAL {self.score}", COLOR_TEXT, "m", center=True)
+        else:
+            draw_text(CENTER_X, SCREEN_HEIGHT * 0.32, f"SCORE {self.score}", COLOR_TEXT, "m", center=True)
         if not self.entering:
             draw_text(CENTER_X, SCREEN_HEIGHT * 0.85, "Enter / Space : タイトルへ", COLOR_SUB_TEXT, center=True)
             return

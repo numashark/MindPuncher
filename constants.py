@@ -126,6 +126,8 @@ FLYER_MOVE_FRAMES = 6
 
 KILL_SCORE = {1: 100, 2: 200, 3: 300}
 COMBO_BONUS = 20
+# ゲームクリアしたときにスコア確認画面で加えるボーナス点（仮）
+CLEAR_BONUS = 5000
 
 # 敵の出現間隔フレーム数（ゲーム開始時と終了時。間は時間に応じて変化）
 SPAWN_INTERVAL_START = 75

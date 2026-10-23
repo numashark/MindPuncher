@@ -1,4 +1,9 @@
-from constants import COMBO_BONUS, KILL_SCORE
+from constants import CLEAR_BONUS, COMBO_BONUS, KILL_SCORE
+
+
+def clear_bonus(cleared):
+    """ゲームクリアしたかどうか cleared から、スコア確認画面で加えるボーナス点を返す"""
+    return CLEAR_BONUS if cleared else 0
 
 
 class ScoreBoard:
