@@ -91,7 +91,7 @@ SMALL, MEDIUM, LARGE = 0, 1, 2
 # 敵の大きさごとの幅と高さ
 ENEMY_WIDTH = (int(26 * SCALE), int(38 * SCALE), int(54 * SCALE))
 ENEMY_HEIGHT = (int(30 * SCALE), int(46 * SCALE), int(66 * SCALE))
-SIZE_DAMAGE_BONUS = (0, 5, 10)
+SIZE_DAMAGE_BONUS = (0, 5, 7)
 # 敵の大きさごとの移動速度の倍率
 SIZE_SPEED_RATE = (1.0, 0.75, 0.5)
 KILL_STAMINA = (1, 2, 3)
@@ -106,11 +106,11 @@ ENEMY_KINDS = (WALKER, FLYER, CHARGER)
 #   first_attack_delay: 攻撃射程に入ってから最初の予備動作までのフレーム数
 #   windup: 攻撃前に点滅する予備動作のフレーム数
 ENEMY_PARAMS = {
-    WALKER: {"damage": 8, "speed": 1.0 * SCALE, "attack_range": int(40 * SCALE),
+    WALKER: {"damage": 9, "speed": 1.0 * SCALE, "attack_range": int(40 * SCALE),
              "attack_interval": 45, "first_attack_delay": 15, "windup": 24},
     FLYER: {"damage": 5, "speed": 1.3 * SCALE, "attack_range": int(50 * SCALE),
             "attack_interval": 40, "first_attack_delay": 10, "windup": 14},
-    CHARGER: {"damage": 12, "speed": 0.8 * SCALE, "attack_range": int(20 * SCALE),
+    CHARGER: {"damage": 11, "speed": 0.8 * SCALE, "attack_range": int(20 * SCALE),
               "attack_interval": 60, "first_attack_delay": 0, "windup": 20},
 }
 # 突進する敵が突進の構えに入る距離、構えて点滅するフレーム数、突進の速さ
