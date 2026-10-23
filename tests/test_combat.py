@@ -3,7 +3,7 @@ import unittest
 
 from combat import enemy_attack, release_punch, update_knockback
 from constants import (
-    BIG, BIG_PUNCH_HOLD, DAMAGE_SHAKE, ENEMY_PARAMS, HURT_FRAMES, FLYER, FLYER_HIGH_ALTITUDE, FLYER_LOW_ALTITUDE, GAME_FRAMES, HITSTOP_FRAMES, KILL_SCORE, LARGE, MAX_HP, MAX_STAMINA,
+    BIG, BIG_PUNCH_HOLD, BIG_SHOCK_FRAMES, DAMAGE_SHAKE, ENEMY_PARAMS, HURT_FRAMES, FLYER, FLYER_HIGH_ALTITUDE, FLYER_LOW_ALTITUDE, GAME_FRAMES, HITSTOP_FRAMES, KILL_SCORE, LARGE, MAX_HP, MAX_STAMINA,
     MEDIUM, MID, MID_PUNCH_HOLD, MIN_RANGE, NORMAL, PUNCH_COST, SCREEN_WIDTH, SIZE_DAMAGE_BONUS,
     SMALL, WALKER, KNOCK_HIT_HITSTOP_FRAMES,
 )
@@ -214,6 +214,21 @@ class TestCombat(unittest.TestCase):
         self.assertTrue(all(e.dead for e in game.enemies))
         self.assertEqual(game.player.hp, 50 + 3 + 2)
         self.assertLessEqual(game.player.hp, MAX_HP)
+
+    def test_big_punch_adds_shock_and_wind(self):
+        """大パンチを出すと敵がいなくても射程に衝撃波と風圧が出て、ほかのパンチでは出ない"""
+        game = self.game
+        release_punch(game, 1)
+        release_punch(game, MID_PUNCH_HOLD)
+        self.assertEqual(game.effects.shocks, [])
+        self.assertEqual(game.effects.winds, [])
+        release_punch(game, BIG_PUNCH_HOLD)
+        self.assertEqual(len(game.effects.shocks), 1)
+        self.assertGreater(len(game.effects.winds), 0)
+        for _ in range(BIG_SHOCK_FRAMES):
+            game.effects.update()
+        self.assertEqual(game.effects.shocks, [])
+        self.assertEqual(game.effects.winds, [])
 
     def test_hitstop_uses_biggest_enemy(self):
         """ヒットストップは当たった中で最も大きい敵の大きさで決まる"""

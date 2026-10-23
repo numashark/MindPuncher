@@ -196,6 +196,14 @@ CRUSH_SPARK_COUNT = 8
 KILL_PARTICLE_COUNT = 14
 # ガードしたときに飛び散る粒の数
 GUARD_PARTICLE_COUNT = 6
+# 大パンチの衝撃波を表示するフレーム数と、射程を走る衝撃波の数（仮）
+BIG_SHOCK_FRAMES = 24
+BIG_SHOCK_WAVES = 3
+# 大パンチの風圧の筋の数、1フレームごとの移動量、表示するフレーム数（仮）
+BIG_WIND_COUNT = 20
+BIG_WIND_SPEED = 12 * SCALE
+BIG_WIND_FRAMES = 18
+COLOR_WIND = (7, 6)
 # 獲得スコアなどの文字が浮かんで消えるまでのフレーム数と、そのうちフェードアウトにかけるフレーム数
 FLOAT_TEXT_FRAMES = 50
 FLOAT_TEXT_FADE_FRAMES = 20
