@@ -5,7 +5,7 @@ import pyxel
 import controls
 from constants import CENTER_X, COLOR_ACCENT, COLOR_DANGER, FINISH_TEXT_FRAMES, SCALE, SCREEN_HEIGHT
 from game import CLEAR, Game
-from hud import draw_danger_border, draw_hud, draw_range
+from hud import draw_danger_border, draw_hud, draw_range, draw_retry_hint
 from render import draw_enemies, draw_player, draw_punch_wave, draw_stage
 from text import draw_text
 
@@ -18,7 +18,10 @@ class PlayScene:
         self.finish_timer = 0
 
     def update(self):
-        """ゲームを進め、終了したらテキスト表示の後にスコア確認画面へ移る"""
+        """ゲームを進め、終了したらテキスト表示の後にスコア確認画面へ移る。Rキーで最初からやり直す"""
+        if controls.retry_pressed():
+            self.app.start_play()
+            return
         if self.game.result is None:
             self.game.update(controls.read_play_inputs())
             return
@@ -41,6 +44,7 @@ class PlayScene:
         game.effects.draw()
         pyxel.camera()
         draw_hud(game)
+        draw_retry_hint()
         draw_danger_border(game.player, game.frame)
         if game.result == CLEAR:
             draw_text(CENTER_X, SCREEN_HEIGHT * 0.38, "CLEAR!", COLOR_ACCENT, "l", center=True)

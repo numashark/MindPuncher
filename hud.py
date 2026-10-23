@@ -3,7 +3,7 @@ import pyxel
 from combat import hit_enemies, punch_targets
 from constants import (
     CENTER_X, COLOR_COMBO_TEXT, COLOR_DANGER, COLOR_EXTRA_STAMINA, COLOR_HP_BAR, COLOR_SCORE_TEXT,
-    COLOR_STAMINA_BAR, COLOR_STAMINA_TICK, COLOR_TEXT, DANGER_BLINK_FRAMES, DANGER_BORDER_WIDTH,
+    COLOR_STAMINA_BAR, COLOR_STAMINA_TICK, COLOR_SUB_TEXT, COLOR_TEXT, DANGER_BLINK_FRAMES, DANGER_BORDER_WIDTH,
     ENEMY_HEIGHT, ENEMY_HP_BAR_GAP, ENEMY_HP_BAR_HEIGHT, GROUND_Y, LARGE, LOW_HP, MAX_HP, MAX_STAMINA,
     PLAYER_HALF_WIDTH, PUNCH_COLOR, PUNCH_COST, PUNCH_KINDS, PUNCH_LABEL,
     RANGE_DITHER, SCALE, SCREEN_HEIGHT, SCREEN_WIDTH, TIME_WARNING_SECONDS,
@@ -16,6 +16,7 @@ BAR_WIDTH = int(260 * SCALE)
 BAR_HEIGHT = int(14 * SCALE)
 LABEL_WIDTH = int(40 * SCALE)
 TICK_LABEL_GAP = int(4 * SCALE)
+RETRY_HINT_Y = SCREEN_HEIGHT - BAR_MARGIN - int(24 * SCALE)
 
 
 def draw_range(game):
@@ -88,6 +89,11 @@ def draw_hud(game):
     draw_text(CENTER_X, m + int(36 * SCALE), f"SCORE {game.score.score}", COLOR_SCORE_TEXT, center=True)
     if game.score.combo >= 2:
         draw_text(CENTER_X, m + int(58 * SCALE), f"{game.score.combo} COMBO", COLOR_COMBO_TEXT, center=True)
+
+
+def draw_retry_hint():
+    """画面の左下にリトライの操作方法を描画する"""
+    draw_text(BAR_MARGIN, RETRY_HINT_Y, "リトライ：Rキー", COLOR_SUB_TEXT)
 
 
 def draw_danger_border(player, frame):

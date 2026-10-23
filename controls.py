@@ -44,6 +44,11 @@ def confirm_name_pressed():
     return any_pressed((pyxel.KEY_RETURN, pyxel.KEY_KP_ENTER))
 
 
+def retry_pressed():
+    """リトライキーが押されたかを返す"""
+    return pyxel.btnp(pyxel.KEY_R)
+
+
 def backspace_pressed():
     """BackSpaceキーが押されたかを返す"""
     return pyxel.btnp(pyxel.KEY_BACKSPACE)
