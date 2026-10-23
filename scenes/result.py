@@ -18,7 +18,7 @@ class ResultScene:
         self.base_score = score
         self.bonus = clear_bonus(cleared)
         self.score = score + self.bonus
-        self.entering = ranking.qualifies(app.ranking, score)
+        self.entering = ranking.qualifies(app.ranking, self.score)
         self.name = ""
 
     def update(self):
