@@ -6,10 +6,10 @@ from punch import affordable_kind, kind_for_hold, punch_range
 
 class TestPunch(unittest.TestCase):
     def test_kind_for_hold(self):
-        """30フレーム未満は通常、30～59は中、60以上は大パンチになる"""
+        """15フレーム未満は通常、15～59は中、60以上は大パンチになる"""
         self.assertEqual(kind_for_hold(1), NORMAL)
-        self.assertEqual(kind_for_hold(29), NORMAL)
-        self.assertEqual(kind_for_hold(30), MID)
+        self.assertEqual(kind_for_hold(14), NORMAL)
+        self.assertEqual(kind_for_hold(15), MID)
         self.assertEqual(kind_for_hold(59), MID)
         self.assertEqual(kind_for_hold(60), BIG)
 
