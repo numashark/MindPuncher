@@ -1,7 +1,7 @@
 import controls
 from constants import CENTER_X, COLOR_ACCENT, COLOR_SUB_TEXT, COLOR_TEXT, SCALE, SCREEN_HEIGHT
 from render import draw_stage
-from text import draw_text
+from text import draw_clear_mark, draw_text, text_width
 
 
 class RankingScene:
@@ -23,6 +23,9 @@ class RankingScene:
         for i, entry in enumerate(self.app.ranking):
             color = COLOR_ACCENT if i == self.highlight else COLOR_TEXT
             draw_text(CENTER_X - int(200 * SCALE), y, f"{i + 1}. {entry['name']}", color, "m")
-            draw_text(CENTER_X + int(70 * SCALE), y, f"{entry['score']:>7}", color, "m")
+            score = f"{entry['score']:>7}"
+            draw_text(CENTER_X + int(70 * SCALE), y, score, color, "m")
+            if entry["clear"]:
+                draw_clear_mark(CENTER_X + int(70 * SCALE) + text_width(score, "m"), y, "m")
             y += int(44 * SCALE)
         draw_text(CENTER_X, SCREEN_HEIGHT * 0.9, "Enter / Space : もどる", COLOR_SUB_TEXT, center=True)
