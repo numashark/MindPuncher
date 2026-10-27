@@ -5,9 +5,9 @@ from constants import (
     COLOR_BACKGROUND, COLOR_BIG_GLOVE_BLINK, COLOR_CHARGE_EMPTY, COLOR_ENEMY_OUTLINE,
     COLOR_ENEMY_WINDUP, COLOR_GLOVE, COLOR_GROUND, COLOR_GROUND_LINE, COLOR_GUARD, COLOR_GUARD_FRAME,
     COLOR_HIT_FLASH, COLOR_HURT, COLOR_KNOCKBACK_OUTLINE, COLOR_PLAYER, COLOR_PLAYER_SKIN, COLOR_STAMINA_BAR,
-    COLOR_TEXT, COLOR_TRAIL, ENEMY_BODY_COLOR, ENEMY_HP_BAR_COLOR, ENEMY_HP_BAR_GAP, ENEMY_HP_BAR_HEIGHT, FLYER,
+    COLOR_STAMINA_TICK, COLOR_TEXT, COLOR_TRAIL, ENEMY_BODY_COLOR, ENEMY_HP_BAR_COLOR, ENEMY_HP_BAR_GAP, ENEMY_HP_BAR_HEIGHT, FLYER,
     GLOVE_BLINK_FRAMES, GROUND_Y, MAX_STAMINA, MID, NORMAL, PUNCH_COST, PLAYER_HALF_WIDTH, PLAYER_HEIGHT,
-    PUNCH_ANIM_FRAMES, PUNCH_COLOR, SCALE, SCREEN_HEIGHT, SCREEN_WIDTH, STAR_COUNT, WALKER,
+    PUNCH_ANIM_FRAMES, PUNCH_KINDS, PUNCH_COLOR, SCALE, SCREEN_HEIGHT, SCREEN_WIDTH, STAR_COUNT, WALKER,
     WINDUP_BLINK_FRAMES,
 )
 
@@ -137,7 +137,7 @@ def draw_punch_wave(player):
 
 
 def draw_charge_gauge(player, player_top, kind):
-    """プレイヤーの頭上に現在のスタミナを表示し、今離すと出るパンチで減る分をパンチの色で点滅させる"""
+    """プレイヤーの頭上に現在のスタミナを表示し、今離すと出るパンチで減る分をパンチの色で点滅させる。各パンチに必要なスタミナの位置に線を引く"""
     gx = CENTER_X - CHARGE_GAUGE_WIDTH // 2
     gy = player_top - int(26 * SCALE)
     total = player.total_stamina()
@@ -154,3 +154,6 @@ def draw_charge_gauge(player, player_top, kind):
         pyxel.rect(gx + remain_w, gy, total_w - remain_w, CHARGE_GAUGE_HEIGHT, cost_color)
         pyxel.line(gx + remain_w, gy, gx + remain_w, gy + CHARGE_GAUGE_HEIGHT - 1, 0)
     pyxel.rectb(gx, gy, CHARGE_GAUGE_WIDTH, CHARGE_GAUGE_HEIGHT, COLOR_TEXT)
+    for punch_kind in PUNCH_KINDS:
+        tick_x = gx + int(CHARGE_GAUGE_WIDTH * PUNCH_COST[punch_kind] / scale)
+        pyxel.line(tick_x, gy - int(2 * SCALE), tick_x, gy + CHARGE_GAUGE_HEIGHT + int(2 * SCALE), COLOR_STAMINA_TICK)
