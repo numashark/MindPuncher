@@ -1,8 +1,11 @@
+import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import ranking
+from constants import BASE_DIR
 
 
 class TestRanking(unittest.TestCase):
@@ -36,6 +39,17 @@ class TestRanking(unittest.TestCase):
             path = Path(tmp) / "ranking.json"
             ranking.save(path, [{"name": "OLD", "score": 300}])
             self.assertEqual(ranking.load(path), [{"name": "OLD", "score": 300, "clear": False}])
+
+    def test_default_path_is_game_dir(self):
+        """スクリプトで実行したときはゲームのフォルダに保存する"""
+        self.assertEqual(ranking.default_path(), BASE_DIR / "ranking.json")
+
+    def test_default_path_is_executable_dir(self):
+        """実行ファイルで実行したときは実行ファイルと同じフォルダに保存する"""
+        with tempfile.TemporaryDirectory() as tmp:
+            exe = Path(tmp).resolve() / "mind_puncher.exe"
+            with mock.patch.object(sys, "frozen", True, create=True), mock.patch.object(sys, "executable", str(exe)):
+                self.assertEqual(ranking.default_path(), exe.parent / "ranking.json")
 
 
 if __name__ == "__main__":

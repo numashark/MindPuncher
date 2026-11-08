@@ -34,6 +34,16 @@ def down_pressed():
     return any_pressed((pyxel.KEY_S, pyxel.KEY_DOWN))
 
 
+def left_pressed():
+    """メニューで左が押されたかを返す"""
+    return any_pressed((pyxel.KEY_A, pyxel.KEY_LEFT))
+
+
+def right_pressed():
+    """メニューで右が押されたかを返す"""
+    return any_pressed((pyxel.KEY_D, pyxel.KEY_RIGHT))
+
+
 def decide_pressed():
     """決定キーが押されたかを返す"""
     return any_pressed(PUNCH_KEYS)
@@ -42,6 +52,11 @@ def decide_pressed():
 def confirm_name_pressed():
     """名前入力の決定キーが押されたかを返す"""
     return any_pressed((pyxel.KEY_RETURN, pyxel.KEY_KP_ENTER))
+
+
+def retry_pressed():
+    """リトライキーが押されたかを返す"""
+    return pyxel.btnp(pyxel.KEY_R)
 
 
 def backspace_pressed():

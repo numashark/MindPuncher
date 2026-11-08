@@ -15,7 +15,8 @@ BASE_DIR = Path(__file__).resolve().parent
 FONT_PATH = BASE_DIR / "assets" / "x10y12pxDonguriDuel.ttf"
 FONT_SCALE = max(1, round(SCALE))
 # 文字の大きさごとのフォントサイズ
-FONT_SIZES = {"s": int(22 * SCALE), "m": int(38 * SCALE), "l": int(76 * SCALE)}
+FONT_SIZES = {"s": int(18 * SCALE), "m": int(32 * SCALE), "l": int(64 * SCALE),
+              "howto": int(26 * SCALE)}
 
 GAME_FRAMES = 120 * FPS
 # ゲームオーバー/クリアのテキストを表示してからスコア確認画面に移るまでのフレーム数
@@ -38,8 +39,6 @@ PUNCH_KINDS = (NORMAL, MID, BIG)
 MID_PUNCH_HOLD = 15
 BIG_PUNCH_HOLD = 60
 NO_STAMINA_CHARGE_LIMIT = 10
-# チャージゲージが満タンになる長押しフレーム数
-CHARGE_GAUGE_FULL_FRAMES = 90
 # チャージゲージの幅と高さ
 CHARGE_GAUGE_WIDTH = int(90 * SCALE)
 CHARGE_GAUGE_HEIGHT = int(8 * SCALE)
@@ -146,8 +145,6 @@ NAME_MAX_LENGTH = 10
 NAME_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 DEFAULT_NAME = "PLAYER"
 RANKING_FILE_NAME = "ranking.json"
-USER_DATA_VENDOR = "densan"
-USER_DATA_APP = "MindPuncher"
 
 MENU_ITEMS = ("ゲームスタート", "あそびかた", "ランキング")
 
