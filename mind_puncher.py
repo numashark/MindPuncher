@@ -12,7 +12,8 @@ class App:
         from constants import FPS, FULLSCREEN, SCREEN_HEIGHT, SCREEN_WIDTH, WINDOW_TITLE
         from text import load_fonts
 
-        pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title=WINDOW_TITLE, fps=FPS, quit_key=pyxel.KEY_ESCAPE)
+        quit_key = pyxel.KEY_NONE if screen_mode.IS_WEB else pyxel.KEY_ESCAPE
+        pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title=WINDOW_TITLE, fps=FPS, quit_key=quit_key)
         if FULLSCREEN and not screen_mode.IS_WEB:
             pyxel.fullscreen(True)
         load_fonts()

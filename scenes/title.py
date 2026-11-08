@@ -6,6 +6,7 @@ from constants import (
     MENU_ITEMS, SCALE, SCREEN_HEIGHT,
 )
 from render import draw_stage
+from screen_mode import IS_WEB
 from text import draw_clear_mark, draw_text, text_width
 
 
@@ -58,6 +59,7 @@ class TitleScene:
                 draw_clear_mark(CENTER_X + int(50 * SCALE) + text_width(score), y)
             y += int(26 * SCALE)
 
-        draw_text(CENTER_X, SCREEN_HEIGHT * 0.94,
-                  "W/S・↑/↓ : せんたく   Enter/Space : けってい   ESC : しゅうりょう",
-                  COLOR_SUB_TEXT, center=True)
+        guide = "W/S・↑/↓ : せんたく   Enter/Space : けってい"
+        if not IS_WEB:
+            guide += "   ESC : しゅうりょう"
+        draw_text(CENTER_X, SCREEN_HEIGHT * 0.94, guide, COLOR_SUB_TEXT, center=True)
