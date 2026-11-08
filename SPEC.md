@@ -108,7 +108,7 @@
 - ランキングの保存先
     - PC版はゲームと同じフォルダの ranking.json に保存する
     - Web版（github.io）はオンラインのデータベース（Firebase Realtime Database）に保存し、遊んだ人全員で共通のランキングにする。データベースのURLなどFirebaseの設定は docs/firebase_config.js に書く（ゲームの再ビルドは不要）
-    - Web版はFirebase App Check（reCAPTCHA v3）を使い、ゲームの起動ページ以外からのデータベースへの読み書きを拒否する（firebase_config.js にreCAPTCHAのサイトキーが設定されているときだけ有効）
+    - Web版はFirebase App Check（Fraud Defense（旧称 reCAPTCHA Enterprise））を使い、ゲームの起動ページ以外からのデータベースへの読み書きを拒否する（firebase_config.js にreCAPTCHAのサイトキーが設定されているときだけ有効）
     - Web版でデータベースのURLが未設定の場合は、ブラウザ（localStorage）に保存する
     - 偽のスコアの登録を減らすため、データベースのルール（firebase_rules.json）で次のものだけ登録できるようにする
         - 名前が英大文字と数字の1～10文字
