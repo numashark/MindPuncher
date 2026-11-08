@@ -145,8 +145,6 @@ NAME_MAX_LENGTH = 10
 NAME_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 DEFAULT_NAME = "PLAYER"
 RANKING_FILE_NAME = "ranking.json"
-# Web版で全員共通のランキングを保存するFirebase Realtime DatabaseのURL（例: "https://xxxx-default-rtdb.firebaseio.com"）。空ならブラウザに保存する
-ONLINE_RANKING_URL = ""
 # データベースの中でスコアを保存する場所の名前
 ONLINE_RANKING_PATH = "scores"
 # データベースの中で名前ごとの最後に登録した時刻を保存する場所の名前（同じ名前の連続登録を防ぐ）

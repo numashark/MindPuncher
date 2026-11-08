@@ -17,6 +17,23 @@
   #mode-select button:hover { background: #3b5dc9; }
 </style>
 <script src="https://cdn.jsdelivr.net/gh/kitao/pyxel@2.9.6/wasm/pyxel.js"></script>
+<script src="firebase_config.js"></script>
+<script type="module">
+  // App Checkのトークンを取得し、ゲーム（Python）から読めるように window に置く
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+  import {
+    initializeAppCheck, ReCaptchaV3Provider, onTokenChanged,
+  } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app-check.js";
+
+  const { recaptchaSiteKey, ...options } = window.mindPuncherFirebase || {};
+  if (options.apiKey && recaptchaSiteKey) {
+    const appCheck = initializeAppCheck(initializeApp(options), {
+      provider: new ReCaptchaV3Provider(recaptchaSiteKey),
+      isTokenAutoRefreshEnabled: true,
+    });
+    onTokenChanged(appCheck, (result) => { window.mindPuncherAppCheckToken = result.token; });
+  }
+</script>
 </head>
 <body>
 <div id="mode-select">

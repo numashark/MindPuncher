@@ -130,7 +130,7 @@ class TestRankingStore(unittest.TestCase):
         with mock.patch.object(ranking_store, "IS_WEB", False):
             self.assertIsInstance(ranking_store.create(), ranking_store.FileStore)
         with mock.patch.object(ranking_store, "IS_WEB", True), \
-                mock.patch.object(ranking_store, "ONLINE_RANKING_URL", "https://example.firebaseio.com"):
+                mock.patch.object(ranking_store, "web_database_url", return_value="https://example.firebaseio.com"):
             self.assertIsInstance(ranking_store.create(), ranking_store.OnlineStore)
 
 

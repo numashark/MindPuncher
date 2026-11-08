@@ -5,9 +5,12 @@ from urllib.parse import quote
 
 import ranking
 from constants import (
-    BROWSER_RANKING_KEY, ONLINE_LAST_POST_PATH, ONLINE_RANKING_PATH, ONLINE_RANKING_URL, RANKING_SIZE,
+    BROWSER_RANKING_KEY, ONLINE_LAST_POST_PATH, ONLINE_RANKING_PATH, RANKING_SIZE,
 )
 from screen_mode import IS_WEB
+
+WEB_FIREBASE_CONFIG = "mindPuncherFirebase"
+WEB_APP_CHECK_TOKEN = "mindPuncherAppCheckToken"
 
 
 class FileStore:
@@ -95,12 +98,23 @@ def new_key():
     return f"{int(time.time() * 1000):013d}{suffix}"
 
 
+def web_database_url():
+    """Web版の起動ページ（docs/firebase_config.js）に設定されたデータベースのURLを返す。未設定なら空文字を返す"""
+    import js
+    config = getattr(js.window, WEB_FIREBASE_CONFIG, None)
+    return str(getattr(config, "databaseURL", "") or "")
+
+
 def web_request(method, url, body):
-    """ブラウザのXMLHttpRequestで通信し、(ステータスコード, 本文) を返す。通信できなかったときは (0, "") を返す"""
+    """ブラウザのXMLHttpRequestで通信し、(ステータスコード, 本文) を返す。通信できなかったときは (0, "") を返す。
+    App Checkのトークンがあればヘッダーに付ける"""
     import js
     try:
         req = js.XMLHttpRequest.new()
         req.open(method, url, False)
+        token = getattr(js.window, WEB_APP_CHECK_TOKEN, None)
+        if token:
+            req.setRequestHeader("X-Firebase-AppCheck", str(token))
         req.send(body)
         return int(req.status), str(req.responseText)
     except Exception:
@@ -111,7 +125,8 @@ def create():
     """動いている環境に合わせてランキングの保存先を作る"""
     if not IS_WEB:
         return FileStore(ranking.default_path())
-    if ONLINE_RANKING_URL:
-        return OnlineStore(ONLINE_RANKING_URL, web_request)
+    url = web_database_url()
+    if url:
+        return OnlineStore(url, web_request)
     import js
     return BrowserStore(js.window.localStorage)
