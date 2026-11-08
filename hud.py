@@ -38,7 +38,7 @@ def draw_range(game):
     if player.charging:
         pyxel.line(left, top, right, top, color)
         pyxel.line(x2, top, x2, GROUND_Y, color)
-        draw_text(x2 - f * int(24 * SCALE), top - int(22 * SCALE), PUNCH_LABEL[kind], color, center=True)
+        draw_text(x2 - f * int(24 * SCALE), top - int(26 * SCALE), PUNCH_LABEL[kind], color, center=True)
     for e in hit_enemies(kind, punch_targets(game, reach, f)):
         ty = int(GROUND_Y - e.altitude - e.height) - ENEMY_HP_BAR_GAP - ENEMY_HP_BAR_HEIGHT - int(4 * SCALE)
         pyxel.tri(e.x - int(5 * SCALE), ty - int(6 * SCALE), e.x + int(5 * SCALE), ty - int(6 * SCALE),
@@ -79,16 +79,16 @@ def draw_hud(game):
         if label_right is not None:
             label_x = max(label_x, label_right + TICK_LABEL_GAP)
         label_right = label_x + text_width(PUNCH_LABEL[kind])
-        draw_text(label_x, y - int(22 * SCALE), PUNCH_LABEL[kind], label_color)
+        draw_text(label_x, y - int(26 * SCALE), PUNCH_LABEL[kind], label_color)
     stamina_text = f"{int(player.stamina)}+{player.extra_total()}" if player.extra_total() > 0 else f"{int(player.stamina)}"
     draw_text(bx, y + BAR_HEIGHT + int(4 * SCALE), f"{stamina_text}/{MAX_STAMINA}", COLOR_TEXT)
 
     remain = game.remaining_seconds()
     time_color = COLOR_DANGER if remain <= TIME_WARNING_SECONDS else COLOR_TEXT
     draw_text(CENTER_X, m, f"TIME {remain}", time_color, "m", center=True)
-    draw_text(CENTER_X, m + int(36 * SCALE), f"SCORE {game.score.score}", COLOR_SCORE_TEXT, center=True)
+    draw_text(CENTER_X, m + int(44 * SCALE), f"SCORE {game.score.score}", COLOR_SCORE_TEXT, center=True)
     if game.score.combo >= 2:
-        draw_text(CENTER_X, m + int(58 * SCALE), f"{game.score.combo} COMBO", COLOR_COMBO_TEXT, center=True)
+        draw_text(CENTER_X, m + int(70 * SCALE), f"{game.score.combo} COMBO", COLOR_COMBO_TEXT, center=True)
 
 
 def draw_retry_hint():
