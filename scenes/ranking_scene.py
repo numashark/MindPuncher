@@ -1,5 +1,7 @@
 import controls
-from constants import CENTER_X, COLOR_ACCENT, COLOR_SUB_TEXT, COLOR_TEXT, SCALE, SCREEN_HEIGHT
+from constants import (
+    CENTER_X, COLOR_ACCENT, COLOR_DANGER, COLOR_SUB_TEXT, COLOR_TEXT, CONNECTION_ERROR_TEXT, SCALE, SCREEN_HEIGHT,
+)
 from render import draw_stage
 from text import draw_clear_mark, draw_text, text_width
 
@@ -28,4 +30,6 @@ class RankingScene:
             if entry["clear"]:
                 draw_clear_mark(CENTER_X + int(70 * SCALE) + text_width(score, "m"), y, "m")
             y += int(44 * SCALE)
+        if self.app.ranking_store.error:
+            draw_text(CENTER_X, SCREEN_HEIGHT * 0.8, CONNECTION_ERROR_TEXT, COLOR_DANGER, "m", center=True)
         draw_text(CENTER_X, SCREEN_HEIGHT * 0.9, "Enter / Space : もどる", COLOR_SUB_TEXT, center=True)

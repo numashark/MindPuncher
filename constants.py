@@ -145,6 +145,14 @@ NAME_MAX_LENGTH = 10
 NAME_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 DEFAULT_NAME = "PLAYER"
 RANKING_FILE_NAME = "ranking.json"
+# Web版で全員共通のランキングを保存するFirebase Realtime DatabaseのURL（例: "https://xxxx-default-rtdb.firebaseio.com"）。空ならブラウザに保存する
+ONLINE_RANKING_URL = ""
+# データベースの中でスコアを保存する場所の名前
+ONLINE_RANKING_PATH = "scores"
+# データベースのURLが未設定のときに、ブラウザ（localStorage）に保存する名前
+BROWSER_RANKING_KEY = "mind_puncher_ranking"
+
+CONNECTION_ERROR_TEXT = "つうしんエラー"
 
 MENU_ITEMS = ("ゲームスタート", "あそびかた", "ランキング")
 

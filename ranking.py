@@ -15,18 +15,46 @@ def default_path():
 def load(path):
     """ランキングを読み込む。読み込めないときは空のランキングを返す"""
     try:
-        data = json.loads(Path(path).read_text(encoding="utf-8"))
-        return [{"name": str(d["name"]), "score": int(d["score"]), "clear": bool(d.get("clear", False))}
-                for d in data][:RANKING_SIZE]
-    except (OSError, ValueError, KeyError, TypeError):
+        return from_json(Path(path).read_text(encoding="utf-8"))
+    except OSError:
         return []
+
+
+def from_json(text):
+    """JSON文字列からランキングを作る。読み取れないときは空のランキングを返す"""
+    try:
+        return [normalize(d) for d in json.loads(text)][:RANKING_SIZE]
+    except (ValueError, KeyError, TypeError, AttributeError):
+        return []
+
+
+def to_json(ranking):
+    """ランキングをJSON文字列にする"""
+    return json.dumps(ranking, ensure_ascii=False, indent=2)
+
+
+def normalize(d):
+    """ランキングの1件を名前・スコア・クリアしたかどうかの形にそろえる"""
+    return {"name": str(d["name"]), "score": int(d["score"]), "clear": bool(d.get("clear", False))}
+
+
+def from_online(data):
+    """オンラインのデータベースから受け取った {ID: 1件} の辞書を、IDつきのランキングにする。同点は先に登録した順にする"""
+    entries = []
+    for key, d in (data or {}).items():
+        try:
+            entries.append({**normalize(d), "id": str(key)})
+        except (KeyError, TypeError, ValueError, AttributeError):
+            continue
+    entries.sort(key=lambda d: (-d["score"], d["id"]))
+    return entries[:RANKING_SIZE]
 
 
 def save(path, ranking):
     """ランキングを保存する"""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(ranking, ensure_ascii=False, indent=2), encoding="utf-8")
+    path.write_text(to_json(ranking), encoding="utf-8")
 
 
 def entry_name(name):

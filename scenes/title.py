@@ -2,8 +2,8 @@ import pyxel
 
 import controls
 from constants import (
-    CENTER_X, COLOR_ACCENT, COLOR_RANKING_TITLE, COLOR_SUB_TEXT, COLOR_TEXT, MENU_ITEMS, SCALE,
-    SCREEN_HEIGHT,
+    CENTER_X, COLOR_ACCENT, COLOR_DANGER, COLOR_RANKING_TITLE, COLOR_SUB_TEXT, COLOR_TEXT, CONNECTION_ERROR_TEXT,
+    MENU_ITEMS, SCALE, SCREEN_HEIGHT,
 )
 from render import draw_stage
 from text import draw_clear_mark, draw_text, text_width
@@ -27,7 +27,7 @@ class TitleScene:
             elif self.index == 1:
                 self.app.show_howto()
             else:
-                self.app.show_ranking()
+                self.app.show_ranking(reload=True)
 
     def draw(self):
         """タイトル、メニュー、ランキング、操作説明を描画する"""
@@ -46,7 +46,9 @@ class TitleScene:
         y = SCREEN_HEIGHT * 0.62
         draw_text(CENTER_X, y, "- RANKING -", COLOR_RANKING_TITLE, center=True)
         y += int(30 * SCALE)
-        if not self.app.ranking:
+        if self.app.ranking_store.error and not self.app.ranking:
+            draw_text(CENTER_X, y, CONNECTION_ERROR_TEXT, COLOR_DANGER, center=True)
+        elif not self.app.ranking:
             draw_text(CENTER_X, y, "まだ きろくが ありません", COLOR_SUB_TEXT, center=True)
         for i, entry in enumerate(self.app.ranking):
             draw_text(CENTER_X - int(130 * SCALE), y, f"{i + 1}. {entry['name']}", COLOR_TEXT)
