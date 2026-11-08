@@ -63,4 +63,4 @@ python -m http.server -d docs
 ## 開発資料
 
 - [ゲーム仕様](SPEC.md)
-- [開発・実装ガイド](Agents.md)
+- [Agents.md](Agents.md)
