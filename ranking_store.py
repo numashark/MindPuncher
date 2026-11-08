@@ -1,8 +1,12 @@
 import json
+import random
+import time
 from urllib.parse import quote
 
 import ranking
-from constants import BROWSER_RANKING_KEY, ONLINE_RANKING_PATH, ONLINE_RANKING_URL, RANKING_SIZE
+from constants import (
+    BROWSER_RANKING_KEY, ONLINE_LAST_POST_PATH, ONLINE_RANKING_PATH, ONLINE_RANKING_URL, RANKING_SIZE,
+)
 from screen_mode import IS_WEB
 
 
@@ -42,11 +46,13 @@ class BrowserStore:
 
 
 class OnlineStore:
-    def __init__(self, base_url, request):
+    def __init__(self, base_url, request, make_key=None):
         """Web版で使う、全員共通のオンラインのデータベースに保存するランキングを作る。
-        request(method, url, body) は通信して (ステータスコード, 本文) を返す関数"""
+        request(method, url, body) は通信して (ステータスコード, 本文) を返す関数、make_key は登録する1件のIDを作る関数"""
+        self.root_url = f"{base_url.rstrip('/')}/.json"
         self.url = f"{base_url.rstrip('/')}/{ONLINE_RANKING_PATH}.json"
         self.request = request
+        self.make_key = make_key or new_key
         self.error = False
 
     def load(self):
@@ -66,13 +72,14 @@ class OnlineStore:
     def add(self, board, name, score, cleared):
         """スコアを登録して上位5件を読み込みなおし、新しいランキングと登録された順位（0始まり）を返す。
         保存できなかったときは error をTrueにして、画面上のランキングにだけ反映する"""
-        body = json.dumps({"name": name, "score": score, "clear": cleared})
-        status, text = self.request("POST", self.url, body)
-        try:
-            if status != 200:
-                raise ValueError(status)
-            key = str(json.loads(text)["name"])
-        except (ValueError, KeyError, TypeError):
+        key = self.make_key()
+        server_time = {".sv": "timestamp"}
+        body = json.dumps({
+            f"{ONLINE_RANKING_PATH}/{key}": {"name": name, "score": score, "clear": cleared, "time": server_time},
+            f"{ONLINE_LAST_POST_PATH}/{name}": server_time,
+        })
+        status, _ = self.request("PATCH", self.root_url, body)
+        if status != 200:
             self.error = True
             return ranking.insert(board, name, score, cleared)
         new_board = self.load()
@@ -80,6 +87,12 @@ class OnlineStore:
             return ranking.insert(board, name, score, cleared)
         index = next((i for i, d in enumerate(new_board) if d["id"] == key), -1)
         return new_board, index
+
+
+def new_key():
+    """登録する1件のIDを、登録した時刻の順に並ぶ文字列で作る"""
+    suffix = "".join(random.choices("abcdefghijklmnopqrstuvwxyz0123456789", k=8))
+    return f"{int(time.time() * 1000):013d}{suffix}"
 
 
 def web_request(method, url, body):

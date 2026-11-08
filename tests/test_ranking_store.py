@@ -6,7 +6,8 @@ from unittest import mock
 
 import ranking
 import ranking_store
-from constants import BROWSER_RANKING_KEY
+import score
+from constants import BASE_DIR, BROWSER_RANKING_KEY, ONLINE_RANKING_PATH
 
 
 class FakeDatabase:
@@ -17,16 +18,22 @@ class FakeDatabase:
         self.entries = dict(entries or {})
         self.online = online
         self.requests = []
+        self.last_posts = {}
 
     def request(self, method, url, body):
         """通信の代わりに (ステータスコード, 本文) を返す"""
         self.requests.append((method, url, body))
         if not self.online:
             return 0, ""
-        if method == "POST":
-            key = f"k{len(self.entries):03d}"
-            self.entries[key] = json.loads(body)
-            return 200, json.dumps({"name": key})
+        if method == "PATCH":
+            updates = json.loads(body)
+            for path, value in updates.items():
+                place, key = path.split("/")
+                if place == ONLINE_RANKING_PATH:
+                    self.entries[key] = value
+                else:
+                    self.last_posts[key] = value
+            return 200, body
         return 200, json.dumps(self.entries)
 
 
@@ -58,7 +65,8 @@ class TestRankingStore(unittest.TestCase):
     def test_online_load_and_add(self):
         """オンラインに登録したスコアは読み込みなおしたランキングの順位で返す"""
         db = FakeDatabase({"a": {"name": "OLD", "score": 300, "clear": False}})
-        store = ranking_store.OnlineStore("https://example.firebaseio.com/", db.request)
+        keys = iter(["k001", "k002"])
+        store = ranking_store.OnlineStore("https://example.firebaseio.com/", db.request, lambda: next(keys))
         board = store.load()
         self.assertEqual(board[0]["name"], "OLD")
         method, url, _ = db.requests[0]
@@ -70,6 +78,26 @@ class TestRankingStore(unittest.TestCase):
         self.assertEqual([(d["name"], d["score"], d["clear"]) for d in board],
                          [("NEW", 500, True), ("OLD", 300, False)])
         self.assertFalse(store.error)
+        method, url, body = db.requests[1]
+        self.assertEqual((method, url), ("PATCH", "https://example.firebaseio.com/.json"))
+        self.assertEqual(json.loads(body)["lastPost/NEW"], {".sv": "timestamp"})
+        self.assertEqual(db.entries["k001"]["time"], {".sv": "timestamp"})
+
+    def test_new_key_is_ordered_by_time(self):
+        """登録する1件のIDは後に作ったものほど後ろに並ぶ"""
+        with mock.patch.object(ranking_store.time, "time", return_value=1000.0):
+            first = ranking_store.new_key()
+        with mock.patch.object(ranking_store.time, "time", return_value=1000.5):
+            second = ranking_store.new_key()
+        self.assertLess(first, second)
+
+    def test_rules_max_score_matches_game(self):
+        """データベースのルールのスコア上限が、ゲームで理論上とれる最大スコアと一致している"""
+        rules = json.loads((BASE_DIR / "firebase_rules.json").read_text(encoding="utf-8"))
+        rule = rules["rules"][ONLINE_RANKING_PATH]["$id"]["score"][".validate"]
+        self.assertIn(f"<= {score.max_score(True)})", rule)
+        self.assertIn(f"<= {score.max_score(False)})", rule)
+        self.assertIn(f">= {score.clear_bonus(True)} ", rule)
 
     def test_online_error_keeps_score_on_screen(self):
         """通信できないときは error をTrueにして、画面上のランキングにだけ反映する"""

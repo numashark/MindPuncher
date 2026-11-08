@@ -149,6 +149,8 @@ RANKING_FILE_NAME = "ranking.json"
 ONLINE_RANKING_URL = ""
 # データベースの中でスコアを保存する場所の名前
 ONLINE_RANKING_PATH = "scores"
+# データベースの中で名前ごとの最後に登録した時刻を保存する場所の名前（同じ名前の連続登録を防ぐ）
+ONLINE_LAST_POST_PATH = "lastPost"
 # データベースのURLが未設定のときに、ブラウザ（localStorage）に保存する名前
 BROWSER_RANKING_KEY = "mind_puncher_ranking"
 
