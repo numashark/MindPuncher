@@ -22,13 +22,13 @@
   // App Checkのトークンを取得し、ゲーム（Python）から読めるように window に置く
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
   import {
-    initializeAppCheck, ReCaptchaV3Provider, onTokenChanged,
+    initializeAppCheck, ReCaptchaEnterpriseProvider, onTokenChanged,
   } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app-check.js";
 
   const { recaptchaSiteKey, ...options } = window.mindPuncherFirebase || {};
   if (options.apiKey && recaptchaSiteKey) {
     const appCheck = initializeAppCheck(initializeApp(options), {
-      provider: new ReCaptchaV3Provider(recaptchaSiteKey),
+      provider: new ReCaptchaEnterpriseProvider(recaptchaSiteKey),
       isTokenAutoRefreshEnabled: true,
     });
     onTokenChanged(appCheck, (result) => { window.mindPuncherAppCheckToken = result.token; });
