@@ -41,6 +41,7 @@
   - `ranking.py`: ランキングの並べ替え・登録、ファイルやJSONとの変換
   - `ranking_store.py`: ランキングの保存先（PC版はファイル、Web版はFirebase Realtime Database、URL未設定のWeb版はlocalStorage）
   - `firebase_rules.json`: Web版のランキング用データベースに設定するセキュリティルール
+  - `make_score_counts.py`: Firebaseからエクスポートした既存のスコアから、順位を求めるための点数帯ごとの件数（scoreCounts）を作る移行スクリプト
   - `docs/`: Web版（github.io）の起動ページ（index.html）、Firebaseの設定（firebase_config.js）、公開用の `mind_puncher.pyxapp`
   - `scenes/`: タイトル、あそびかた、ランキング、ゲーム、スコア確認の各画面
   - `assets/`: フォント（x10y12pxDonguriDuel.ttf）

@@ -3,7 +3,8 @@ import pyxel
 import controls
 import ranking
 from constants import (
-    CENTER_X, COLOR_ACCENT, COLOR_SUB_TEXT, COLOR_TEXT, NAME_MAX_LENGTH, RANKING_SIZE, SCALE, SCREEN_HEIGHT,
+    CENTER_X, COLOR_ACCENT, COLOR_SUB_TEXT, COLOR_TEXT, CONNECTION_ERROR_TEXT, NAME_MAX_LENGTH, SCALE,
+    SCREEN_HEIGHT,
 )
 from render import draw_stage
 from score import clear_bonus
@@ -20,7 +21,8 @@ class ResultScene:
         self.base_score = score
         self.bonus = clear_bonus(cleared)
         self.score = score + self.bonus
-        self.rank, self.rank_limit = app.ranking_store.rank(app.ranking, self.score)
+        self.rank = app.ranking_store.rank(app.ranking, self.score)
+        self.rank_error = app.ranking_store.rank_error
         self.entering = ranking.qualifies(app.ranking, self.score)
         self.name = ""
 
@@ -55,10 +57,10 @@ class ResultScene:
             combo_y = SCREEN_HEIGHT * 0.33
         if self.rank:
             rank = f"RANK {self.rank}"
-        elif self.rank_limit == RANKING_SIZE:
-            rank = "ランクがい"
+        elif self.rank_error:
+            rank = f"RANK {CONNECTION_ERROR_TEXT}"
         else:
-            rank = f"RANK {self.rank_limit}いいか"
+            rank = "ランクがい"
         draw_text(CENTER_X, combo_y, f"MAX COMBO {self.max_combo}   {rank}", COLOR_TEXT, "m", center=True)
         if not self.entering:
             draw_text(CENTER_X, SCREEN_HEIGHT * 0.85, "Enter / Space : タイトルへ", COLOR_SUB_TEXT, center=True)

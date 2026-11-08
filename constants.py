@@ -149,8 +149,12 @@ RANKING_FILE_NAME = "ranking.json"
 ONLINE_RANKING_PATH = "scores"
 # データベースの中で名前ごとの最後に登録した時刻を保存する場所の名前（同じ名前の連続登録を防ぐ）
 ONLINE_LAST_POST_PATH = "lastPost"
-# Web版のスコア確認画面で順位を求めるときに読み込む上位の件数（これより下は「Nいいか」と表示する）
-ONLINE_RANK_LIMIT = 100
+# データベースの中で点数帯ごとのスコアの件数を保存する場所の名前（順位を求めるのに使う）
+ONLINE_COUNT_PATH = "scoreCounts"
+# 順位を求めるための点数帯の幅（firebase_rules.json の値と合わせる）
+SCORE_BUCKET_SIZE = 1000
+# 点数帯の件数がほかの人の登録と同時に書き換わって登録できなかったときに、登録をやりなおす回数
+ONLINE_ADD_RETRIES = 3
 # データベースのURLが未設定のときに、ブラウザ（localStorage）に保存する名前
 BROWSER_RANKING_KEY = "mind_puncher_ranking"
 
