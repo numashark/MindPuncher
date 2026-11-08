@@ -1,13 +1,13 @@
 import pyxel
 
 from constants import (
-    BIG, BIG_PUNCH_HOLD, CENTER_X, CHARGE_GAUGE_FULL_FRAMES, CHARGE_GAUGE_HEIGHT, CHARGE_GAUGE_WIDTH,
+    BIG, CENTER_X, CHARGE_GAUGE_HEIGHT, CHARGE_GAUGE_WIDTH,
     COLOR_BACKGROUND, COLOR_BIG_GLOVE_BLINK, COLOR_CHARGE_EMPTY, COLOR_ENEMY_OUTLINE,
     COLOR_ENEMY_WINDUP, COLOR_GLOVE, COLOR_GROUND, COLOR_GROUND_LINE, COLOR_GUARD, COLOR_GUARD_FRAME,
-    COLOR_HIT_FLASH, COLOR_HURT, COLOR_KNOCKBACK_OUTLINE, COLOR_PLAYER, COLOR_PLAYER_SKIN, COLOR_TEXT,
-    COLOR_TRAIL, ENEMY_BODY_COLOR, ENEMY_HP_BAR_COLOR, ENEMY_HP_BAR_GAP, ENEMY_HP_BAR_HEIGHT, FLYER,
-    GLOVE_BLINK_FRAMES, GROUND_Y, MID, MID_PUNCH_HOLD, NORMAL, PLAYER_HALF_WIDTH, PLAYER_HEIGHT,
-    PUNCH_ANIM_FRAMES, PUNCH_COLOR, SCALE, SCREEN_HEIGHT, SCREEN_WIDTH, STAR_COUNT, WALKER,
+    COLOR_HIT_FLASH, COLOR_HURT, COLOR_KNOCKBACK_OUTLINE, COLOR_PLAYER, COLOR_PLAYER_SKIN, COLOR_STAMINA_BAR,
+    COLOR_STAMINA_TICK, COLOR_TEXT, COLOR_TRAIL, ENEMY_BODY_COLOR, ENEMY_HP_BAR_COLOR, ENEMY_HP_BAR_GAP, ENEMY_HP_BAR_HEIGHT, FLYER,
+    GLOVE_BLINK_FRAMES, GROUND_Y, MAX_STAMINA, MID, NORMAL, PUNCH_COST, PLAYER_HALF_WIDTH, PLAYER_HEIGHT,
+    PUNCH_ANIM_FRAMES, PUNCH_KINDS, PUNCH_COLOR, SCALE, SCREEN_HEIGHT, SCREEN_WIDTH, STAR_COUNT, WALKER,
     WINDUP_BLINK_FRAMES,
 )
 
@@ -106,7 +106,7 @@ def draw_player(player):
         glove = PUNCH_COLOR[kind] if kind else COLOR_CHARGE_EMPTY
         if kind == BIG and pyxel.frame_count % GLOVE_BLINK_FRAMES < GLOVE_BLINK_FRAMES // 2:
             glove = COLOR_BIG_GLOVE_BLINK
-        draw_charge_gauge(player, y0, PUNCH_COLOR[kind] if kind else COLOR_CHARGE_EMPTY)
+        draw_charge_gauge(player, y0, kind)
     glove_x = CENTER_X + f * reach
     pyxel.line(CENTER_X, arm_y, glove_x, arm_y, COLOR_PLAYER_SKIN)
     pyxel.circ(glove_x, arm_y, int(9 * SCALE), glove)
@@ -136,15 +136,24 @@ def draw_punch_wave(player):
     pyxel.rectb(min(x1, x2), GROUND_Y - h // 2 - int(4 * SCALE), abs(x2 - x1), int(8 * SCALE), color)
 
 
-def draw_charge_gauge(player, player_top, color):
-    """プレイヤーの頭上に、長押ししたフレーム数をチャージゲージで表示する"""
+def draw_charge_gauge(player, player_top, kind):
+    """プレイヤーの頭上に現在のスタミナを表示し、今離すと出るパンチで減る分をパンチの色で点滅させる。各パンチに必要なスタミナの位置に線を引く"""
     gx = CENTER_X - CHARGE_GAUGE_WIDTH // 2
     gy = player_top - int(26 * SCALE)
+    total = player.total_stamina()
+    scale = max(MAX_STAMINA, total)
+    cost = PUNCH_COST[kind] if kind else 0
+    remain_w = int(CHARGE_GAUGE_WIDTH * (total - cost) / scale)
+    total_w = int(CHARGE_GAUGE_WIDTH * total / scale)
     pyxel.rect(gx, gy, CHARGE_GAUGE_WIDTH, CHARGE_GAUGE_HEIGHT, 0)
-    fill = CHARGE_GAUGE_WIDTH * min(player.hold, CHARGE_GAUGE_FULL_FRAMES) // CHARGE_GAUGE_FULL_FRAMES
-    pyxel.rect(gx, gy, fill, CHARGE_GAUGE_HEIGHT, color)
-    for mark in (MID_PUNCH_HOLD, BIG_PUNCH_HOLD):
-        mark_x = gx + CHARGE_GAUGE_WIDTH * mark // CHARGE_GAUGE_FULL_FRAMES
-        pyxel.line(mark_x, gy - int(2 * SCALE), mark_x, gy + CHARGE_GAUGE_HEIGHT + int(2 * SCALE),
-                   COLOR_CHARGE_EMPTY)
+    pyxel.rect(gx, gy, remain_w, CHARGE_GAUGE_HEIGHT, COLOR_STAMINA_BAR)
+    if kind:
+        cost_color = PUNCH_COLOR[kind]
+        if pyxel.frame_count % GLOVE_BLINK_FRAMES < GLOVE_BLINK_FRAMES // 2:
+            cost_color = COLOR_CHARGE_EMPTY
+        pyxel.rect(gx + remain_w, gy, total_w - remain_w, CHARGE_GAUGE_HEIGHT, cost_color)
+        pyxel.line(gx + remain_w, gy, gx + remain_w, gy + CHARGE_GAUGE_HEIGHT - 1, 0)
     pyxel.rectb(gx, gy, CHARGE_GAUGE_WIDTH, CHARGE_GAUGE_HEIGHT, COLOR_TEXT)
+    for punch_kind in PUNCH_KINDS:
+        tick_x = gx + int(CHARGE_GAUGE_WIDTH * PUNCH_COST[punch_kind] / scale)
+        pyxel.line(tick_x, gy - int(2 * SCALE), tick_x, gy + CHARGE_GAUGE_HEIGHT + int(2 * SCALE), COLOR_STAMINA_TICK)
