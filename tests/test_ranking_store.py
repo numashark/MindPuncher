@@ -7,7 +7,7 @@ from unittest import mock
 import ranking
 import ranking_store
 import score
-from constants import BASE_DIR, BROWSER_RANKING_KEY, ONLINE_RANKING_PATH
+from constants import BASE_DIR, BROWSER_RANKING_KEY, ONLINE_RANKING_PATH, RANKING_SIZE
 
 
 class FakeDatabase:
@@ -62,25 +62,26 @@ class TestRankingStore(unittest.TestCase):
         self.assertEqual([d["id"] for d in board], ["k1", "k4", "k2", "k3", "k5"])
         self.assertEqual(ranking.from_online(None), [])
 
-    def test_online_rank_counts_all_scores(self):
-        """オンラインの順位は上位5件だけでなく、データベースに保存されている全員のスコアから求める"""
+    def test_online_rank_reads_top_scores(self):
+        """オンラインの順位は、スコア順に並べ替えた上位 ONLINE_RANK_LIMIT 件から求め、それより下はNoneにする"""
         db = FakeDatabase({f"k{i}": {"name": f"P{i}", "score": s, "clear": False}
                            for i, s in enumerate((900, 800, 700, 600, 500, 400, 300))})
         store = ranking_store.OnlineStore("https://example.firebaseio.com/", db.request)
-        board = store.load()
-        self.assertEqual(store.rank(board, 350), 7)
-        self.assertEqual(store.rank(board, 400), 6)
-        self.assertEqual(store.rank(board, 1000), 1)
+        with mock.patch.object(ranking_store, "ONLINE_RANK_LIMIT", 7):
+            self.assertEqual(store.rank([], 350), (7, 7))
+            self.assertEqual(store.rank([], 400), (6, 7))
+            self.assertEqual(store.rank([], 1000), (1, 7))
+            self.assertEqual(store.rank([], 200), (None, 7))
         method, url, _ = db.requests[-1]
         self.assertEqual(method, "GET")
-        self.assertEqual(url, "https://example.firebaseio.com/scores.json?orderBy=%22score%22&startAt=1001")
+        self.assertEqual(url, "https://example.firebaseio.com/scores.json?orderBy=%22score%22&limitToLast=7")
 
     def test_online_rank_falls_back_to_board(self):
         """通信できなかったときは画面上の上位5件から順位を求める"""
         board = [{"name": "A", "score": 500, "clear": False}]
         store = ranking_store.OnlineStore("https://example.firebaseio.com/", FakeDatabase(online=False).request)
-        self.assertEqual(store.rank(board, 600), 1)
-        self.assertEqual(store.rank(board, 400), 2)
+        self.assertEqual(store.rank(board, 600), (1, RANKING_SIZE))
+        self.assertEqual(store.rank(board, 400), (2, RANKING_SIZE))
 
     def test_online_load_and_add(self):
         """オンラインに登録したスコアは読み込みなおしたランキングの順位で返す"""
