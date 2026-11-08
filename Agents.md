@@ -13,6 +13,9 @@
 - 実行: `python -m pyxel run mind_puncher/mind_puncher.py`
 - ビルド: `python -m pyxel package mind_puncher mind_puncher/mind_puncher.py`（`mind_puncher.pyxapp` ができる）
 - テスト: `python -m unittest discover -s mind_puncher/tests -t mind_puncher`
+- Web版（github.io）の更新: ビルドしてできた `mind_puncher.pyxapp` を `mind_puncher/docs/` にコピーしてコミットする（GitHub Pages は main ブランチの `/docs` フォルダを公開する設定にする）
+  - 手元の `ranking.json` などgit管理外のファイルが入らないよう、`git archive HEAD` で取り出したフォルダ（名前は `mind_puncher`）でビルドする
+- Web版をローカルで確認: `python -m http.server -d mind_puncher/docs` を実行してブラウザで http://localhost:8000 を開く
 - 仕様を1つ実装・追加するたびに、ビルドとテストを実行して成功を確認すること
 - テストが失敗した場合は、修正してから次の仕様に進むこと
 
@@ -21,7 +24,7 @@
 - 機能ごとにファイルを分け、`mind_puncher.py` から呼び出す
 - 現在の構成:
   - `mind_puncher.py`: エントリポイント、画面の切り替え
-  - `screen_mode.py`: 起動時のウィンドウ/フルスクリーン選択、DPI対応（表示スケールで画面端が欠けるのを防ぐ）
+  - `screen_mode.py`: 起動時のウィンドウ/フルスクリーン選択（PC版はダイアログ、Web版は起動ページで選ばれたモード）、DPI対応（表示スケールで画面端が欠けるのを防ぐ）、Web版かどうかの判定
   - `constants.py`: 定数（調整用の仮の値もここにまとめる）
   - `controls.py`: キー入力
   - `player.py`: プレイヤー（振り向き、チャージ、ガード、HP、スタミナ）
@@ -35,11 +38,15 @@
   - `render.py`: 背景、プレイヤー、敵の描画
   - `hud.py`: HPバー、スタミナバー、射程表示、画面の縁の点滅
   - `text.py`: フォントの読み込みと文字描画
-  - `ranking.py`: ランキングの保存と読み込み
+  - `ranking.py`: ランキングの並べ替え・登録、ファイルやJSONとの変換
+  - `ranking_store.py`: ランキングの保存先（PC版はファイル、Web版はFirebase Realtime Database、URL未設定のWeb版はlocalStorage）
+  - `firebase_rules.json`: Web版のランキング用データベースに設定するセキュリティルール
+  - `docs/`: Web版（github.io）の起動ページ（index.html）、Firebaseの設定（firebase_config.js）、公開用の `mind_puncher.pyxapp`
   - `scenes/`: タイトル、あそびかた、ランキング、ゲーム、スコア確認の各画面
   - `assets/`: フォント（x10y12pxDonguriDuel.ttf）
   - `tests/`: テストコード（描画以外のゲームロジックを確認する）
 - ゲームロジック（player, punch, enemy, combat, game など）からは描画やキー入力を呼ばず、テストできる形を保つ
+- ブラウザでしか使えないモジュール（`js`）とPC版でしか使えないモジュール（`tkinter`、`ctypes`）は関数の中で読み込み、どちらの環境でもimportだけで失敗しないようにする
 
 ## git規約
 branchは機能ごとにdevelopから`stamina`や`enemy`などのように切り替えて作業、pushし、developへのプルリクエストまでを行う
