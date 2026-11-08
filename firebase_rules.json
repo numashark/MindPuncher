@@ -1,0 +1,23 @@
+{
+  "rules": {
+    "scores": {
+      ".read": true,
+      ".indexOn": ["score"],
+      "$id": {
+        ".write": "!data.exists()",
+        ".validate": "newData.hasChildren(['name', 'score', 'clear', 'time']) && newData.parent().parent().child('lastPost').child(newData.child('name').val()).val() == now",
+        "name": { ".validate": "newData.isString() && newData.val().matches(/^[A-Z0-9]{1,10}$/)" },
+        "score": { ".validate": "newData.isNumber() && newData.val() >= 0 && ((newData.parent().child('clear').val() == true && newData.val() >= 25000 && newData.val() <= 327100) || (newData.parent().child('clear').val() == false && newData.val() <= 302100))" },
+        "clear": { ".validate": "newData.isBoolean()" },
+        "time": { ".validate": "newData.val() == now" },
+        "$other": { ".validate": false }
+      }
+    },
+    "lastPost": {
+      "$name": {
+        ".write": "!data.exists() || now - data.val() >= 10000",
+        ".validate": "newData.val() == now"
+      }
+    }
+  }
+}
