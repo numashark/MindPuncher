@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MindPuncher</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; color: #fff; font-family: sans-serif; }
+  #mode-select {
+    height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+  }
+  #mode-select h1 { color: #ffd34e; font-size: 48px; margin: 0 0 16px; }
+  #mode-select button {
+    width: 320px; padding: 14px; font-size: 20px; color: #fff; background: #29366f;
+    border: 2px solid #fff; border-radius: 6px; cursor: pointer;
+  }
+  #mode-select button:hover { background: #3b5dc9; }
+</style>
+<script src="https://cdn.jsdelivr.net/gh/kitao/pyxel@2.9.6/wasm/pyxel.js"></script>
+</head>
+<body>
+<div id="mode-select">
+  <h1>MindPuncher</h1>
+  <p>がめんモードを えらんでください</p>
+  <button onclick="start(false)">ウィンドウ (800×600)</button>
+  <button onclick="start(true)">フルスクリーン (1920×1080)</button>
+</div>
+<script>
+  function start(fullscreen) {
+    window.mindPuncherFullscreen = fullscreen;
+    if (fullscreen && document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    }
+    document.getElementById("mode-select").remove();
+    launchPyxel({ command: "play", name: "mind_puncher.pyxapp", gamepad: "enabled" });
+  }
+</script>
+</body>
+</html>

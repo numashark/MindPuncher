@@ -13,7 +13,7 @@ class App:
         from text import load_fonts
 
         pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title=WINDOW_TITLE, fps=FPS, quit_key=pyxel.KEY_ESCAPE)
-        if FULLSCREEN:
+        if FULLSCREEN and not screen_mode.IS_WEB:
             pyxel.fullscreen(True)
         load_fonts()
         self.ranking_path = ranking.default_path()
