@@ -20,6 +20,7 @@ class ResultScene:
         self.base_score = score
         self.bonus = clear_bonus(cleared)
         self.score = score + self.bonus
+        self.rank = app.ranking_store.rank(app.ranking, self.score)
         self.entering = ranking.qualifies(app.ranking, self.score)
         self.name = ""
 
@@ -52,7 +53,8 @@ class ResultScene:
         else:
             draw_text(CENTER_X, SCREEN_HEIGHT * 0.24, f"SCORE {self.score}", COLOR_TEXT, "m", center=True)
             combo_y = SCREEN_HEIGHT * 0.33
-        draw_text(CENTER_X, combo_y, f"MAX COMBO {self.max_combo}", COLOR_TEXT, "m", center=True)
+        rank = f"RANK {self.rank}" if self.rank else "ランクがい"
+        draw_text(CENTER_X, combo_y, f"MAX COMBO {self.max_combo}   {rank}", COLOR_TEXT, "m", center=True)
         if not self.entering:
             draw_text(CENTER_X, SCREEN_HEIGHT * 0.85, "Enter / Space : タイトルへ", COLOR_SUB_TEXT, center=True)
             return

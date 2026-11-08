@@ -19,6 +19,15 @@ class TestRanking(unittest.TestCase):
         self.assertEqual([d["score"] for d in new_board], [500, 400, 350, 300, 200])
         self.assertTrue(new_board[index]["clear"])
 
+    def test_rank(self):
+        """順位は自分より高いスコアの数+1で、同点は同じ順位、上位5名に入らなければNone"""
+        board = [{"name": "A", "score": s, "clear": False} for s in (500, 400, 400, 200, 100)]
+        self.assertEqual(ranking.rank(board, 600), 1)
+        self.assertEqual(ranking.rank(board, 400), 2)
+        self.assertEqual(ranking.rank(board, 300), 4)
+        self.assertIsNone(ranking.rank(board, 50))
+        self.assertEqual(ranking.rank([], 0), 1)
+
     def test_empty_name_becomes_player(self):
         """名前が0文字のときはPLAYERになる"""
         self.assertEqual(ranking.entry_name(""), "PLAYER")

@@ -67,6 +67,12 @@ def qualifies(ranking, score):
     return len(ranking) < RANKING_SIZE or score > ranking[-1]["score"]
 
 
+def rank(ranking, score):
+    """スコアがランキングの中で何位か（1始まり、同点は同じ順位）を返す。上位5名に入らないときはNoneを返す"""
+    place = sum(1 for d in ranking if d["score"] > score) + 1
+    return place if place <= RANKING_SIZE else None
+
+
 def insert(ranking, name, score, cleared):
     """ランキングに登録し、新しいランキングと登録された順位（0始まり）を返す。cleared はゲームクリアしたかどうか"""
     entry = {"name": name, "score": score, "clear": cleared}

@@ -23,6 +23,10 @@ class FileStore:
         """ランキングを読み込む"""
         return ranking.load(self.path)
 
+    def rank(self, board, score):
+        """スコアが保存されたランキングの中で何位かを返す。上位5名に入らないときはNoneを返す"""
+        return ranking.rank(board, score)
+
     def add(self, board, name, score, cleared):
         """ランキングに登録して保存し、新しいランキングと登録された順位（0始まり）を返す"""
         new_board, index = ranking.insert(board, name, score, cleared)
@@ -40,6 +44,10 @@ class BrowserStore:
         """ランキングを読み込む"""
         text = self.storage.getItem(BROWSER_RANKING_KEY)
         return ranking.from_json(text) if text else []
+
+    def rank(self, board, score):
+        """スコアが保存されたランキングの中で何位かを返す。上位5名に入らないときはNoneを返す"""
+        return ranking.rank(board, score)
 
     def add(self, board, name, score, cleared):
         """ランキングに登録して保存し、新しいランキングと登録された順位（0始まり）を返す"""
@@ -71,6 +79,20 @@ class OnlineStore:
             return []
         self.error = False
         return board
+
+    def rank(self, board, score):
+        """スコアがデータベースに保存されている全員のスコアの中で何位か（1始まり、同点は同じ順位）を返す。
+        読み込めなかったときは上位5件の board から求め、上位5名に入らないときはNoneを返す"""
+        query = f"?orderBy={quote(json.dumps('score'))}&startAt={score + 1}"
+        status, text = self.request("GET", self.url + query, None)
+        try:
+            if status != 200:
+                raise ValueError(status)
+            data = json.loads(text) or {}
+            higher = sum(1 for d in data.values() if int(d["score"]) > score)
+        except (ValueError, AttributeError, KeyError, TypeError):
+            return ranking.rank(board, score)
+        return higher + 1
 
     def add(self, board, name, score, cleared):
         """スコアを登録して上位5件を読み込みなおし、新しいランキングと登録された順位（0始まり）を返す。
