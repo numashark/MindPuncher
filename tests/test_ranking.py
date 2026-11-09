@@ -19,6 +19,30 @@ class TestRanking(unittest.TestCase):
         self.assertEqual([d["score"] for d in new_board], [500, 400, 350, 300, 200])
         self.assertTrue(new_board[index]["clear"])
 
+    def test_rank(self):
+        """順位は自分より高いスコアの数+1で、同点は同じ順位、上位5名に入らなければNone"""
+        board = [{"name": "A", "score": s, "clear": False} for s in (500, 400, 400, 200, 100)]
+        self.assertEqual(ranking.rank(board, 600), 1)
+        self.assertEqual(ranking.rank(board, 400), 2)
+        self.assertEqual(ranking.rank(board, 300), 4)
+        self.assertIsNone(ranking.rank(board, 50))
+        self.assertEqual(ranking.rank([], 0), 1)
+
+    def test_bucket_counts(self):
+        """点数帯ごとに件数を数え、自分より上の点数帯の件数の合計を求められる"""
+        entries = {"k1": {"name": "A", "score": 999, "clear": False},
+                   "k2": {"name": "B", "score": 1000, "clear": False},
+                   "k3": {"name": "C", "score": 2500, "clear": False},
+                   "bad": {"name": "D"}}
+        self.assertEqual(ranking.score_bucket(999), 0)
+        self.assertEqual(ranking.score_bucket(1000), 1)
+        counts = ranking.count_buckets(entries)
+        self.assertEqual(counts, {"b0": {"n": 1, "last": "k1"}, "b1": {"n": 1, "last": "k2"},
+                                  "b2": {"n": 1, "last": "k3"}})
+        self.assertEqual(ranking.count_higher(counts, 1500), 1)
+        self.assertEqual(ranking.count_higher(counts, 0), 2)
+        self.assertEqual(ranking.count_higher(None, 0), 0)
+
     def test_empty_name_becomes_player(self):
         """名前が0文字のときはPLAYERになる"""
         self.assertEqual(ranking.entry_name(""), "PLAYER")

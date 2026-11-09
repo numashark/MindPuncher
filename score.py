@@ -19,13 +19,15 @@ def max_score(cleared=True):
 
 class ScoreBoard:
     def __init__(self):
-        """スコアとコンボ数を0にする"""
+        """スコアとコンボ数、最大コンボ数を0にする"""
         self.score = 0
         self.combo = 0
+        self.max_combo = 0
 
     def add_kill(self, enemy_max_hp):
         """敵を倒したときのスコアとコンボボーナスを加算し、加算した点数を返す"""
         self.combo += 1
+        self.max_combo = max(self.max_combo, self.combo)
         points = KILL_SCORE[enemy_max_hp] + self.combo * COMBO_BONUS
         self.score += points
         return points
