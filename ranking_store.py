@@ -5,7 +5,8 @@ from urllib.parse import quote
 
 import ranking
 from constants import (
-    BROWSER_RANKING_KEY, ONLINE_LAST_POST_PATH, ONLINE_RANKING_PATH, RANKING_SIZE,
+    BROWSER_RANKING_KEY, ONLINE_ADD_RETRIES, ONLINE_COUNT_PATH, ONLINE_LAST_POST_PATH, ONLINE_PLAY_PATH,
+    ONLINE_RANKING_PATH, RANKING_SIZE, SCORE_BUCKET_SIZE,
 )
 from screen_mode import IS_WEB
 
@@ -18,10 +19,18 @@ class FileStore:
         """PC版で使う、ファイルに保存するランキングを作る"""
         self.path = path
         self.error = False
+        self.rank_error = False
 
     def load(self):
         """ランキングを読み込む"""
         return ranking.load(self.path)
+
+    def record_play(self, score, cleared):
+        """プレイが終わったときに呼ぶ。この保存先ではプレイごとのスコアは記録しない"""
+
+    def rank(self, board, score):
+        """スコアが保存されたランキングの中で何位かを返す。上位5名に入らないときはNoneを返す"""
+        return ranking.rank(board, score)
 
     def add(self, board, name, score, cleared):
         """ランキングに登録して保存し、新しいランキングと登録された順位（0始まり）を返す"""
@@ -35,11 +44,19 @@ class BrowserStore:
         """Web版でデータベースのURLが未設定のときに使う、ブラウザ（localStorage）に保存するランキングを作る"""
         self.storage = storage
         self.error = False
+        self.rank_error = False
 
     def load(self):
         """ランキングを読み込む"""
         text = self.storage.getItem(BROWSER_RANKING_KEY)
         return ranking.from_json(text) if text else []
+
+    def record_play(self, score, cleared):
+        """プレイが終わったときに呼ぶ。この保存先ではプレイごとのスコアは記録しない"""
+
+    def rank(self, board, score):
+        """スコアが保存されたランキングの中で何位かを返す。上位5名に入らないときはNoneを返す"""
+        return ranking.rank(board, score)
 
     def add(self, board, name, score, cleared):
         """ランキングに登録して保存し、新しいランキングと登録された順位（0始まり）を返す"""
@@ -52,11 +69,15 @@ class OnlineStore:
     def __init__(self, base_url, request, make_key=None):
         """Web版で使う、全員共通のオンラインのデータベースに保存するランキングを作る。
         request(method, url, body) は通信して (ステータスコード, 本文) を返す関数、make_key は登録する1件のIDを作る関数"""
-        self.root_url = f"{base_url.rstrip('/')}/.json"
-        self.url = f"{base_url.rstrip('/')}/{ONLINE_RANKING_PATH}.json"
+        self.base_url = base_url.rstrip("/")
+        self.root_url = f"{self.base_url}/.json"
+        self.url = f"{self.base_url}/{ONLINE_RANKING_PATH}.json"
+        self.plays_url = f"{self.base_url}/{ONLINE_PLAY_PATH}.json"
+        self.counts_url = f"{self.base_url}/{ONLINE_COUNT_PATH}.json"
         self.request = request
         self.make_key = make_key or new_key
         self.error = False
+        self.rank_error = False
 
     def load(self):
         """上位5件を読み込む。読み込めなかったときは error をTrueにして空のランキングを返す"""
@@ -71,6 +92,53 @@ class OnlineStore:
             return []
         self.error = False
         return board
+
+    def record_play(self, score, cleared):
+        """プレイが終わったときに、名前なしでスコアを記録し、そのスコアの点数帯の件数を1増やす。
+        ほかの人の記録と同時になって件数を書き換えられなかったときは、件数を読みなおして記録しなおす。
+        記録できたかどうかを返す"""
+        key = self.make_key()
+        bucket = ranking.score_bucket(score)
+        count_path = f"{ONLINE_COUNT_PATH}/{ranking.bucket_key(bucket)}"
+        for _ in range(ONLINE_ADD_RETRIES):
+            status, text = self.request("GET", f"{self.base_url}/{count_path}.json", None)
+            try:
+                if status != 200:
+                    raise ValueError(status)
+                count = int((json.loads(text) or {}).get("n", 0))
+            except (ValueError, AttributeError, TypeError):
+                return False
+            body = json.dumps({
+                f"{ONLINE_PLAY_PATH}/{key}": {
+                    "score": score, "clear": cleared, "bucket": bucket, "time": {".sv": "timestamp"},
+                },
+                count_path: {"n": count + 1, "last": key},
+            })
+            status, _ = self.request("PATCH", self.root_url, body)
+            if status == 200:
+                return True
+        return False
+
+    def rank(self, board, score):
+        """スコアがデータベースに記録されている全プレイのスコアの中で何位か（1始まり、同点は同じ順位）を返す。
+        点数帯ごとの件数から自分より上の点数帯の件数を求め、同じ点数帯のプレイだけを読み込んで自分より上の件数を足す。
+        読み込めなかったときは rank_error をTrueにして、上位5件の board から求める（上位5名に入らないときはNone）"""
+        bucket_end = (ranking.score_bucket(score) + 1) * SCORE_BUCKET_SIZE - 1
+        query = f"?orderBy={quote(json.dumps('score'))}&startAt={score + 1}&endAt={bucket_end}"
+        try:
+            status, text = self.request("GET", self.counts_url, None)
+            if status != 200:
+                raise ValueError(status)
+            higher = ranking.count_higher(json.loads(text), score)
+            status, text = self.request("GET", self.plays_url + query, None)
+            if status != 200:
+                raise ValueError(status)
+            same = sum(1 for d in (json.loads(text) or {}).values() if int(d["score"]) > score)
+        except (ValueError, AttributeError, KeyError, TypeError):
+            self.rank_error = True
+            return ranking.rank(board, score)
+        self.rank_error = False
+        return higher + same + 1
 
     def add(self, board, name, score, cleared):
         """スコアを登録して上位5件を読み込みなおし、新しいランキングと登録された順位（0始まり）を返す。
