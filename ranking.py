@@ -84,12 +84,12 @@ def bucket_key(bucket):
 
 
 def count_buckets(entries):
-    """データベースの {ID: 1件} の辞書から、点数帯ごとの件数をデータベースに保存する形
+    """データベースの {ID: 1件} の辞書（1件にはスコアがあればよい）から、点数帯ごとの件数をデータベースに保存する形
     {場所の名前: {"n": 件数, "last": その点数帯に最後に登録したID}} にして返す。読み取れない1件は数えない"""
     counts = {}
     for key in sorted(entries or {}):
         try:
-            name = bucket_key(score_bucket(normalize(entries[key])["score"]))
+            name = bucket_key(score_bucket(int(entries[key]["score"])))
         except (KeyError, TypeError, ValueError, AttributeError):
             continue
         counts[name] = {"n": counts.get(name, {"n": 0})["n"] + 1, "last": str(key)}

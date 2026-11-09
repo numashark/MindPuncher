@@ -13,14 +13,15 @@ from text import draw_clear_mark, draw_text, text_width
 
 class ResultScene:
     def __init__(self, app, score, max_combo, cleared):
-        """スコア確認画面を作る。ゲームクリアしていたらボーナス点を加え、上位5名に入るなら名前入力を行う。
-        max_combo はプレイ中の最大コンボ数"""
+        """スコア確認画面を作る。ゲームクリアしていたらボーナス点を加え、プレイのスコアを記録して順位を求め、
+        上位5名に入るなら名前入力を行う。max_combo はプレイ中の最大コンボ数"""
         self.app = app
         self.max_combo = max_combo
         self.cleared = cleared
         self.base_score = score
         self.bonus = clear_bonus(cleared)
         self.score = score + self.bonus
+        app.ranking_store.record_play(self.score, cleared)
         self.rank = app.ranking_store.rank(app.ranking, self.score)
         self.rank_error = app.ranking_store.rank_error
         self.entering = ranking.qualifies(app.ranking, self.score)

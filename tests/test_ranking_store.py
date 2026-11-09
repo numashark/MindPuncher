@@ -8,27 +8,31 @@ from urllib.parse import parse_qsl
 import ranking
 import ranking_store
 import score
-import make_score_counts
+import make_play_records
 from constants import (
-    BASE_DIR, BROWSER_RANKING_KEY, ONLINE_ADD_RETRIES, ONLINE_COUNT_PATH, ONLINE_RANKING_PATH,
-    SCORE_BUCKET_SIZE,
+    BASE_DIR, BROWSER_RANKING_KEY, ONLINE_ADD_RETRIES, ONLINE_COUNT_PATH, ONLINE_LAST_POST_PATH, ONLINE_PLAY_PATH,
+    ONLINE_RANKING_PATH, SCORE_BUCKET_SIZE,
 )
 
 
 class FakeDatabase:
-    """Firebase Realtime Database の代わりに、送られたスコアと点数帯ごとの件数を覚えておく"""
+    """Firebase Realtime Database の代わりに、送られたスコアやプレイの記録、点数帯ごとの件数を覚えておく"""
 
-    def __init__(self, entries=None, online=True):
-        """entries は {ID: 1件} の辞書、online がFalseなら通信できない。点数帯ごとの件数は entries から作る"""
+    def __init__(self, entries=None, online=True, plays=None):
+        """entries は名前つきのスコア {ID: 1件}、plays はプレイの記録 {ID: 1件} の辞書、online がFalseなら通信できない。
+        点数帯ごとの件数は plays から作る"""
         self.entries = dict(entries or {})
-        self.counts = ranking.count_buckets(self.entries)
+        self.plays = dict(plays or {})
+        self.counts = ranking.count_buckets(self.plays)
+        self.last_posts = {}
+        self.nodes = {ONLINE_RANKING_PATH: self.entries, ONLINE_PLAY_PATH: self.plays,
+                      ONLINE_COUNT_PATH: self.counts, ONLINE_LAST_POST_PATH: self.last_posts}
         self.online = online
         self.requests = []
-        self.last_posts = {}
         self.conflicts = 0
 
     def request(self, method, url, body):
-        """通信の代わりに (ステータスコード, 本文) を返す。conflicts が残っていれば、登録の直前にほかの人の登録で件数が増える"""
+        """通信の代わりに (ステータスコード, 本文) を返す。conflicts が残っていれば、書き込みの直前にほかの人の記録で件数が増える"""
         self.requests.append((method, url, body))
         if not self.online:
             return 0, ""
@@ -37,11 +41,12 @@ class FakeDatabase:
         params = {k: json.loads(v) for k, v in parse_qsl(query)}
         if method == "PATCH":
             return self.patch(json.loads(body))
-        if path == ONLINE_COUNT_PATH:
+        node, _, key = path.partition("/")
+        if key:
+            return 200, json.dumps(self.nodes[node].get(key))
+        if node == ONLINE_COUNT_PATH:
             return 200, json.dumps(self.counts or None)
-        if path.startswith(ONLINE_COUNT_PATH + "/"):
-            return 200, json.dumps(self.counts.get(path.split("/")[1]))
-        entries = sorted(self.entries.items(), key=lambda kv: kv[1]["score"])
+        entries = sorted(self.nodes[node].items(), key=lambda kv: kv[1]["score"])
         if "startAt" in params:
             entries = [kv for kv in entries if kv[1]["score"] >= params["startAt"]]
         if "endAt" in params:
@@ -55,16 +60,16 @@ class FakeDatabase:
         if self.conflicts:
             self.conflicts -= 1
             for path in updates:
-                place, key = path.split("/")
-                if place == ONLINE_COUNT_PATH:
+                node, key = path.split("/")
+                if node == ONLINE_COUNT_PATH:
                     self.counts.setdefault(key, {"n": 0, "last": "other"})["n"] += 1
         for path, value in updates.items():
-            place, key = path.split("/")
-            if place == ONLINE_COUNT_PATH and value["n"] != self.counts.get(key, {"n": 0})["n"] + 1:
+            node, key = path.split("/")
+            if node == ONLINE_COUNT_PATH and value["n"] != self.counts.get(key, {"n": 0})["n"] + 1:
                 return 400, ""
         for path, value in updates.items():
-            place, key = path.split("/")
-            {ONLINE_RANKING_PATH: self.entries, ONLINE_COUNT_PATH: self.counts}.get(place, self.last_posts)[key] = value
+            node, key = path.split("/")
+            self.nodes[node][key] = value
         return 200, json.dumps(updates)
 
 
@@ -94,14 +99,14 @@ class TestRankingStore(unittest.TestCase):
         self.assertEqual(ranking.from_online(None), [])
 
     def test_online_rank_uses_bucket_counts(self):
-        """オンラインの順位は、上の点数帯の件数と、同じ点数帯で自分より高いスコアの数から求める（同点は同じ順位）"""
-        db = FakeDatabase({f"k{i}": {"name": f"P{i}", "score": s, "clear": False}
-                           for i, s in enumerate((5500, 5200, 4800, 4100, 3000, 300))})
+        """オンラインの順位は、全プレイの記録の上の点数帯の件数と、同じ点数帯で自分より高いスコアの数から求める（同点は同じ順位）"""
+        db = FakeDatabase(plays={f"k{i}": {"score": s, "clear": False, "bucket": s // SCORE_BUCKET_SIZE}
+                                 for i, s in enumerate((5500, 5200, 4800, 4100, 3000, 300))})
         store = ranking_store.OnlineStore("https://example.firebaseio.com/", db.request)
         self.assertEqual(store.rank([], 4500), 4)
         method, url, _ = db.requests[-1]
         self.assertEqual(method, "GET")
-        self.assertEqual(url, "https://example.firebaseio.com/scores.json?orderBy=%22score%22&startAt=4501&endAt=4999")
+        self.assertEqual(url, "https://example.firebaseio.com/plays.json?orderBy=%22score%22&startAt=4501&endAt=4999")
         self.assertEqual(db.requests[-2][1], "https://example.firebaseio.com/scoreCounts.json")
         self.assertEqual(store.rank([], 4800), 3)
         self.assertEqual(store.rank([], 6000), 1)
@@ -116,32 +121,31 @@ class TestRankingStore(unittest.TestCase):
         self.assertEqual(store.rank(board, 400), 2)
         self.assertTrue(store.rank_error)
 
-    def test_online_add_counts_bucket(self):
-        """スコアを登録すると、そのスコアの点数帯の件数も1増える"""
-        db = FakeDatabase({"a": {"name": "OLD", "score": 4200, "clear": False}})
+    def test_online_record_play_counts_bucket(self):
+        """プレイが終わると名前なしでスコアを記録し、その点数帯の件数も1増える。名前つきのスコアは増えない"""
+        db = FakeDatabase(plays={"a": {"score": 4200, "clear": False, "bucket": 4}})
         store = ranking_store.OnlineStore("https://example.firebaseio.com/", db.request, lambda: "k001")
-        store.add(store.load(), "NEW", 4500, False)
+        self.assertTrue(store.record_play(4500, False))
         self.assertEqual(db.counts["b4"], {"n": 2, "last": "k001"})
-        self.assertEqual(db.entries["k001"]["bucket"], 4)
+        self.assertEqual(db.plays["k001"], {"score": 4500, "clear": False, "bucket": 4, "time": {".sv": "timestamp"}})
+        self.assertEqual(db.entries, {})
         self.assertEqual(store.rank([], 4300), 2)
 
-    def test_online_add_retries_when_count_changed(self):
-        """ほかの人の登録と同時になって件数を書き換えられなかったときは、件数を読みなおして登録しなおす"""
+    def test_online_record_play_retries_when_count_changed(self):
+        """ほかの人の記録と同時になって件数を書き換えられなかったときは、件数を読みなおして記録しなおす"""
         db = FakeDatabase()
         db.conflicts = 1
         store = ranking_store.OnlineStore("https://example.firebaseio.com/", db.request, lambda: "k001")
-        board, index = store.add([], "NEW", 500, False)
-        self.assertFalse(store.error)
+        self.assertTrue(store.record_play(500, False))
         self.assertEqual(db.counts["b0"], {"n": 2, "last": "k001"})
-        self.assertEqual(index, 0)
 
         db = FakeDatabase()
         db.conflicts = ONLINE_ADD_RETRIES
         store = ranking_store.OnlineStore("https://example.firebaseio.com/", db.request, lambda: "k001")
-        board, index = store.add([], "NEW", 500, False)
-        self.assertTrue(store.error)
-        self.assertNotIn("k001", db.entries)
-        self.assertEqual((board, index), ([{"name": "NEW", "score": 500, "clear": False}], 0))
+        self.assertFalse(store.record_play(500, False))
+        self.assertNotIn("k001", db.plays)
+        self.assertFalse(ranking_store.OnlineStore("https://example.firebaseio.com/",
+                                                   FakeDatabase(online=False).request).record_play(500, False))
 
     def test_online_load_and_add(self):
         """オンラインに登録したスコアは読み込みなおしたランキングの順位で返す"""
@@ -159,8 +163,7 @@ class TestRankingStore(unittest.TestCase):
         self.assertEqual([(d["name"], d["score"], d["clear"]) for d in board],
                          [("NEW", 500, True), ("OLD", 300, False)])
         self.assertFalse(store.error)
-        self.assertEqual(db.requests[1][:2], ("GET", "https://example.firebaseio.com/scoreCounts/b0.json"))
-        method, url, body = db.requests[2]
+        method, url, body = db.requests[1]
         self.assertEqual((method, url), ("PATCH", "https://example.firebaseio.com/.json"))
         self.assertEqual(json.loads(body)["lastPost/NEW"], {".sv": "timestamp"})
         self.assertEqual(db.entries["k001"]["time"], {".sv": "timestamp"})
@@ -182,28 +185,35 @@ class TestRankingStore(unittest.TestCase):
         self.assertIn(f">= {score.clear_bonus(True)} ", rule)
 
     def test_rules_bucket_matches_game(self):
-        """データベースのルールの点数帯の幅と件数の保存場所が、ゲームの設定と一致している"""
+        """データベースのルールの点数帯の幅と保存場所が、ゲームの設定と一致している"""
         rules = json.loads((BASE_DIR / "firebase_rules.json").read_text(encoding="utf-8"))["rules"]
-        rule = rules[ONLINE_RANKING_PATH]["$id"]["bucket"][".validate"]
+        rule = rules[ONLINE_PLAY_PATH]["$id"]["bucket"][".validate"]
         self.assertIn(f"newData.val() * {SCORE_BUCKET_SIZE} <=", rule)
         self.assertIn(f"(newData.val() + 1) * {SCORE_BUCKET_SIZE}", rule)
         self.assertIn(f"child('{ONLINE_COUNT_PATH}').child('b' + newData.val())", rule)
-        self.assertIn("$bucket", rules[ONLINE_COUNT_PATH])
+        self.assertIn(f"child('{ONLINE_PLAY_PATH}')", rules[ONLINE_COUNT_PATH]["$bucket"][".validate"])
+        self.assertEqual(rules[ONLINE_PLAY_PATH]["$id"]["score"], rules[ONLINE_RANKING_PATH]["$id"]["score"])
+        self.assertIn(ONLINE_LAST_POST_PATH, rules)
 
-    def test_make_score_counts_from_export(self):
-        """既存のスコアのエクスポート（データベース全体でもscoresだけでも）から点数帯ごとの件数を作れる"""
-        scores = {"k1": {"name": "A", "score": 1500, "clear": False},
+    def test_make_play_records_from_export(self):
+        """既存のスコアのエクスポート（データベース全体でもscoresだけでも）からプレイの記録と点数帯ごとの件数を作れる"""
+        scores = {"k1": {"name": "A", "score": 1500, "clear": False, "time": 111},
                   "k2": {"name": "B", "score": 1999, "clear": False},
-                  "k3": {"name": "C", "score": 30000, "clear": True}}
-        expected = {"b1": {"n": 2, "last": "k2"}, "b30": {"n": 1, "last": "k3"}}
-        self.assertEqual(make_score_counts.make_counts(scores), expected)
-        self.assertEqual(make_score_counts.make_counts({ONLINE_RANKING_PATH: scores, "lastPost": {}}), expected)
+                  "k3": {"name": "C", "score": 30000, "clear": True, "time": 333},
+                  "bad": {"name": "D"}}
+        plays = {"k1": {"score": 1500, "clear": False, "bucket": 1, "time": 111},
+                 "k2": {"score": 1999, "clear": False, "bucket": 1, "time": 0},
+                 "k3": {"score": 30000, "clear": True, "bucket": 30, "time": 333}}
+        self.assertEqual(make_play_records.make_plays(scores), plays)
+        self.assertEqual(make_play_records.make_plays({ONLINE_RANKING_PATH: scores, "lastPost": {}}), plays)
         with tempfile.TemporaryDirectory() as tmp:
-            src, dst = Path(tmp) / "export.json", Path(tmp) / "counts.json"
+            src = Path(tmp) / "export.json"
             src.write_text(json.dumps(scores), encoding="utf-8")
             with mock.patch("builtins.print"):
-                self.assertEqual(make_score_counts.main(["", str(src), str(dst)]), 0)
-            self.assertEqual(json.loads(dst.read_text(encoding="utf-8")), expected)
+                self.assertEqual(make_play_records.main(["", str(src), str(Path(tmp) / "out")]), 0)
+            read = lambda name: json.loads((Path(tmp) / "out" / f"{name}.json").read_text(encoding="utf-8"))
+            self.assertEqual(read(ONLINE_PLAY_PATH), plays)
+            self.assertEqual(read(ONLINE_COUNT_PATH), {"b1": {"n": 2, "last": "k2"}, "b30": {"n": 1, "last": "k3"}})
 
     def test_online_error_keeps_score_on_screen(self):
         """通信できないときは error をTrueにして、画面上のランキングにだけ反映する"""
@@ -228,6 +238,7 @@ class TestRankingStore(unittest.TestCase):
         """PC版はファイルに保存して読み込める"""
         with tempfile.TemporaryDirectory() as tmp:
             store = ranking_store.FileStore(Path(tmp) / "ranking.json")
+            store.record_play(1000, False)
             board, index = store.add([], "ABC", 1000, False)
             self.assertEqual(ranking_store.FileStore(Path(tmp) / "ranking.json").load(), board)
 
