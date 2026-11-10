@@ -2,9 +2,13 @@ import pyxel
 
 import controls
 import ranking
+import screen_mode
+import share
 from constants import (
-    CENTER_X, COLOR_ACCENT, COLOR_SUB_TEXT, COLOR_TEXT, CONNECTION_ERROR_TEXT, LOADING_TEXT, NAME_MAX_LENGTH,
-    RESULT_INPUT_LOCK_FRAMES, SCALE, SCREEN_HEIGHT,
+    CENTER_X, COLOR_ACCENT, COLOR_SHARE_HOVER, COLOR_SHARE_LOGO_ACCENT, COLOR_SHARE_LOGO_FILL,
+    COLOR_SHARE_LOGO_OUTLINE, COLOR_SHARE_TEXT, COLOR_SUB_TEXT, COLOR_TEXT, CONNECTION_ERROR_TEXT, FONT_SIZES,
+    LOADING_TEXT, NAME_MAX_LENGTH, RESULT_INPUT_LOCK_FRAMES, SCALE, SCREEN_HEIGHT, SHARE_BUTTON_TEXT, SHARE_BUTTON_X,
+    SHARE_BUTTON_Y, SHARE_LOGO_DOT, SHARE_TEXT_GAP,
 )
 from render import draw_stage
 from score import clear_bonus
@@ -12,13 +16,15 @@ from text import draw_clear_mark, draw_text, text_width
 
 
 class ResultScene:
-    def __init__(self, app, score, max_combo, cleared):
+    def __init__(self, app, score, max_combo, cleared, survival_seconds):
         """スコア確認画面を作る。ゲームクリアしていたらボーナス点を加える。
         ランキングの読み込みなどは時間がかかるので、読み込み中の表示を描画してから行う。
-        max_combo はプレイ中の最大コンボ数"""
+        max_combo はプレイ中の最大コンボ数、survival_seconds は生き残った秒数。Web版ではXでシェアできる"""
         self.app = app
         self.max_combo = max_combo
         self.cleared = cleared
+        self.survival_seconds = survival_seconds
+        self.can_share = screen_mode.IS_WEB
         self.base_score = score
         self.bonus = clear_bonus(cleared)
         self.score = score + self.bonus
@@ -49,12 +55,17 @@ class ResultScene:
             self.load()
             self.loading = False
             self.input_lock = RESULT_INPUT_LOCK_FRAMES
+            if self.can_share:
+                controls.show_mouse(True)
             return
         if self.input_lock > 0:
             self.input_lock -= 1
             return
+        if self.can_share and controls.click_pressed() and self.share_hovered():
+            share.open_share(share.share_url(self.share_text()))
         if not self.entering:
             if controls.decide_pressed():
+                self.leave()
                 self.app.show_title()
             return
         for ch in controls.typed_chars():
@@ -64,7 +75,48 @@ class ResultScene:
             self.name = self.name[:-1]
         if controls.confirm_name_pressed():
             index = self.app.save_score(ranking.entry_name(self.name), self.score, self.cleared)
+            self.leave()
             self.app.show_ranking(index)
+
+    def leave(self):
+        """ほかの画面に移る前に、表示していたマウスカーソルを消す"""
+        if self.can_share:
+            controls.show_mouse(False)
+
+    def share_text(self):
+        """Xに投稿する本文を返す"""
+        return share.share_text(self.score, self.max_combo, self.survival_seconds, self.cleared, self.rank)
+
+    def share_button_rect(self):
+        """シェアボタン（Xのロゴとその下の文字）全体の左上の位置と幅・高さを返す"""
+        logo_size = share.X_LOGO_SIZE * SHARE_LOGO_DOT
+        w = max(logo_size, text_width(SHARE_BUTTON_TEXT))
+        h = logo_size + SHARE_TEXT_GAP + FONT_SIZES["s"]
+        return SHARE_BUTTON_X, SHARE_BUTTON_Y, w, h
+
+    def share_hovered(self):
+        """マウスカーソルがシェアボタンの上にあるかを返す"""
+        x, y, w, h = self.share_button_rect()
+        mx, my = controls.mouse_position()
+        return x <= mx < x + w and y <= my < y + h
+
+    def draw_share_button(self):
+        """ドット絵のXのロゴと、その下に「でシェア」の文字を描画する。
+        マウスが乗っているときはロゴの白い縁取りと文字を黄色にする"""
+        x, y, w, _ = self.share_button_rect()
+        hovered = self.share_hovered()
+        colors = {
+            share.LOGO_FILL: COLOR_SHARE_LOGO_FILL,
+            share.LOGO_OUTLINE: COLOR_SHARE_HOVER if hovered else COLOR_SHARE_LOGO_OUTLINE,
+            share.LOGO_ACCENT: COLOR_SHARE_LOGO_ACCENT,
+        }
+        logo_size = share.X_LOGO_SIZE * SHARE_LOGO_DOT
+        logo_x = x + (w - logo_size) // 2
+        for (dx, dy), kind in share.x_logo_dots().items():
+            pyxel.rect(logo_x + dx * SHARE_LOGO_DOT, y + dy * SHARE_LOGO_DOT, SHARE_LOGO_DOT, SHARE_LOGO_DOT,
+                       colors[kind])
+        draw_text(x + w // 2, y + logo_size + SHARE_TEXT_GAP, SHARE_BUTTON_TEXT,
+                  COLOR_SHARE_HOVER if hovered else COLOR_SHARE_TEXT, center=True)
 
     def draw(self):
         """スコアと名前入力欄を描画する。読み込み中は読み込み中の表示だけを出す"""
@@ -91,6 +143,8 @@ class ResultScene:
         else:
             rank = "ランクがい"
         draw_text(CENTER_X, combo_y, f"MAX COMBO {self.max_combo}   {rank}", COLOR_TEXT, "m", center=True)
+        if self.can_share:
+            self.draw_share_button()
         if not self.entering:
             draw_text(CENTER_X, SCREEN_HEIGHT * 0.85, "Enter / Space : タイトルへ", COLOR_SUB_TEXT, center=True)
             return

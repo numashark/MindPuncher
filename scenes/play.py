@@ -27,7 +27,8 @@ class PlayScene:
             return
         self.finish_timer += 1
         if self.finish_timer >= FINISH_TEXT_FRAMES:
-            self.app.show_result(self.game.score.score, self.game.score.max_combo, self.game.result == CLEAR)
+            self.app.show_result(self.game.score.score, self.game.score.max_combo, self.game.result == CLEAR,
+                                 self.game.survival_seconds())
 
     def draw(self):
         """ゲーム画面を描画する"""

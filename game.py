@@ -26,6 +26,10 @@ class Game:
         """残り時間を秒で返す"""
         return max(0, -(-(GAME_FRAMES - self.frame) // FPS))
 
+    def survival_seconds(self):
+        """ゲームが始まってから生き残った時間を秒で返す"""
+        return self.frame // FPS
+
     def update(self, inputs):
         """入力 inputs をもとにゲームを1フレーム進める"""
         if self.result:
