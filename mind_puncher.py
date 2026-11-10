@@ -60,7 +60,6 @@ class App:
     def show_result(self, score, max_combo, cleared):
         """スコア確認画面に移る。max_combo はプレイ中の最大コンボ数、cleared はゲームクリアしたかどうか"""
         from scenes.result import ResultScene
-        self.ranking = self.ranking_store.load()
         self.scene = ResultScene(self, score, max_combo, cleared)
 
     def save_score(self, name, score, cleared):

@@ -3,8 +3,8 @@ import pyxel
 import controls
 import ranking
 from constants import (
-    CENTER_X, COLOR_ACCENT, COLOR_SUB_TEXT, COLOR_TEXT, CONNECTION_ERROR_TEXT, NAME_MAX_LENGTH, SCALE,
-    SCREEN_HEIGHT,
+    CENTER_X, COLOR_ACCENT, COLOR_SUB_TEXT, COLOR_TEXT, CONNECTION_ERROR_TEXT, LOADING_TEXT, NAME_MAX_LENGTH,
+    RESULT_INPUT_LOCK_FRAMES, SCALE, SCREEN_HEIGHT,
 )
 from render import draw_stage
 from score import clear_bonus
@@ -13,22 +13,42 @@ from text import draw_clear_mark, draw_text, text_width
 
 class ResultScene:
     def __init__(self, app, score, max_combo, cleared):
-        """スコア確認画面を作る。ゲームクリアしていたらボーナス点を加え、プレイのスコアを記録して順位を求め、
-        上位5名に入るなら名前入力を行う。max_combo はプレイ中の最大コンボ数"""
+        """スコア確認画面を作る。ゲームクリアしていたらボーナス点を加える。
+        ランキングの読み込みなどは時間がかかるので、読み込み中の表示を出してから次のフレームで行う。
+        max_combo はプレイ中の最大コンボ数"""
         self.app = app
         self.max_combo = max_combo
         self.cleared = cleared
         self.base_score = score
         self.bonus = clear_bonus(cleared)
         self.score = score + self.bonus
-        app.ranking_store.record_play(self.score, cleared)
+        self.loading = True
+        self.input_lock = 0
+        self.rank = None
+        self.rank_error = False
+        self.entering = False
+        self.name = ""
+
+    def load(self):
+        """ランキングを読み込みなおし、プレイのスコアを記録して順位を求め、上位5名に入るなら名前入力を行う"""
+        app = self.app
+        app.ranking = app.ranking_store.load()
+        app.ranking_store.record_play(self.score, self.cleared)
         self.rank = app.ranking_store.rank(app.ranking, self.score)
         self.rank_error = app.ranking_store.rank_error
         self.entering = ranking.qualifies(app.ranking, self.score)
-        self.name = ""
 
     def update(self):
-        """名前入力とランキングへの保存、画面の移動を処理する"""
+        """読み込み、名前入力とランキングへの保存、画面の移動を処理する。
+        読み込み中と読み込みが終わってからしばらくの間は操作を受け付けない"""
+        if self.loading:
+            self.load()
+            self.loading = False
+            self.input_lock = RESULT_INPUT_LOCK_FRAMES
+            return
+        if self.input_lock > 0:
+            self.input_lock -= 1
+            return
         if not self.entering:
             if controls.decide_pressed():
                 self.app.show_title()
@@ -43,9 +63,12 @@ class ResultScene:
             self.app.show_ranking(index)
 
     def draw(self):
-        """スコアと名前入力欄を描画する"""
+        """スコアと名前入力欄を描画する。読み込み中は読み込み中の表示だけを出す"""
         draw_stage()
         draw_text(CENTER_X, SCREEN_HEIGHT * 0.12, "RESULT", COLOR_ACCENT, "l", center=True)
+        if self.loading:
+            draw_text(CENTER_X, SCREEN_HEIGHT * 0.45, LOADING_TEXT, COLOR_TEXT, "m", center=True)
+            return
         if self.bonus:
             draw_text(CENTER_X, SCREEN_HEIGHT * 0.21, f"SCORE {self.base_score}", COLOR_TEXT, "m", center=True)
             draw_text(CENTER_X, SCREEN_HEIGHT * 0.275, f"CLEAR BONUS +{self.bonus}", COLOR_ACCENT, "m", center=True)
