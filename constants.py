@@ -21,6 +21,8 @@ FONT_SIZES = {"s": int(18 * SCALE), "m": int(32 * SCALE), "l": int(64 * SCALE),
 GAME_FRAMES = 120 * FPS
 # ゲームオーバー/クリアのテキストを表示してからスコア確認画面に移るまでのフレーム数
 FINISH_TEXT_FRAMES = 60
+# スコア確認画面で読み込みが終わってから操作を受け付けるまでのフレーム数（読み込み中に押したキーを無視するため）
+RESULT_INPUT_LOCK_FRAMES = 15
 
 MAX_HP = 100
 MAX_STAMINA = 100
@@ -161,6 +163,7 @@ ONLINE_ADD_RETRIES = 3
 BROWSER_RANKING_KEY = "mind_puncher_ranking"
 
 CONNECTION_ERROR_TEXT = "つうしんエラー"
+LOADING_TEXT = "よみこみちゅう..."
 
 MENU_ITEMS = ("ゲームスタート", "あそびかた", "ランキング")
 
