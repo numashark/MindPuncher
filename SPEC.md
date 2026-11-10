@@ -33,7 +33,7 @@
     - PC版（python -m pyxel run / .pyxapp）は起動時のダイアログで選ぶ
     - Web版（github.io）は起動ページ（docs/index.html）の「ウィンドウ (800×600)」「フルスクリーン (1920×1080)」ボタンで選ぶ。Pyxelは起動後に画面の大きさを変えられないため、選んだモードの大きさでゲームを起動する
     - どちらもキーボードだけで操作できるようにする。上下キーかW / Sキーでモードを選び、Enter / Spaceキーで決定する。最初は「ウィンドウ」が選ばれた状態にする
-    - Web版はPyxelの「CLICK TO START」もEnter / Spaceキーで進められるようにする
+    - Web版はPyxelの「CLICK TO START」もEnter / Spaceキーで進められるようにし、表示を「ENTER TO START」に置き換える（タッチ端末の「TOUCH TO START」はそのまま）
     - Web版のフルスクリーンはブラウザの全画面表示にする。どちらのモードもゲーム画面はブラウザの大きさに合わせて比率を保ったまま拡大・縮小する
 - フルスクリーンでもHPバーなどの画面端の表示が欠けないようにする（PC版はWindowsの表示スケールの影響を受けない）
 - ゲーム全体のフォントはx10y12pxDonguriDuelを使用する

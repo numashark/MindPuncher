@@ -47,6 +47,8 @@
   const START_KEYS = ["Enter", "NumpadEnter", " "];
   const UP_CODES = ["ArrowUp", "KeyW"];
   const DOWN_CODES = ["ArrowDown", "KeyS"];
+  const CLICK_TO_START_IMAGE = "click_to_start";
+  const ENTER_TO_START_IMAGE = "enter_to_start_114x14.png";
 
   // 起動ページのボタンを上下キー/W Sキーで選び、Pyxelの「CLICK TO START」をEnter/Spaceキーでも進められるようにする
   document.addEventListener("keydown", (event) => {
@@ -70,6 +72,14 @@
       resolveInput();
     }
   });
+
+  // Pyxelが出す「CLICK TO START」の画像を「ENTER TO START」の画像に差し替える（タッチ端末の「TOUCH TO START」はそのまま）
+  new MutationObserver(() => {
+    const prompt = document.getElementById("pyxel-prompt");
+    if (prompt && prompt.src.includes(CLICK_TO_START_IMAGE)) {
+      prompt.src = ENTER_TO_START_IMAGE;
+    }
+  }).observe(document.documentElement, { childList: true, subtree: true });
 
   window.addEventListener("load", () => {
     const first = document.querySelector("#mode-select button");
