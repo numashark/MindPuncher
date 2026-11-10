@@ -49,8 +49,35 @@ def select_by_dialog():
         chosen["value"] = value
         root.destroy()
 
-    tk.Label(root, text="がめんモードを えらんでください", padx=20, pady=12).pack()
-    tk.Button(root, text="ウィンドウ (800×600)", width=24, command=lambda: choose(False)).pack(padx=20, pady=4)
-    tk.Button(root, text="フルスクリーン (1920×1080)", width=24, command=lambda: choose(True)).pack(padx=20, pady=(4, 16))
+    tk.Label(root, text="がめんモードを えらんでください").pack(padx=20, pady=(12, 0))
+    tk.Label(root, text="↑↓ / W S: えらぶ  Enter / Space: けってい").pack(padx=20, pady=4)
+    buttons = [
+        tk.Button(root, text="ウィンドウ (800×600)", width=24, command=lambda: choose(False)),
+        tk.Button(root, text="フルスクリーン (1920×1080)", width=24, command=lambda: choose(True)),
+    ]
+    buttons[0].pack(padx=20, pady=4)
+    buttons[1].pack(padx=20, pady=(4, 16))
+
+    def move_focus(step):
+        """上下キーかW/Sキーで選んでいるボタンを切り替える"""
+        focused = root.focus_get()
+        index = buttons.index(focused) if focused in buttons else 0
+        buttons[(index + step) % len(buttons)].focus_set()
+
+    def decide(_event):
+        """Enterキーで選んでいるボタンを押す"""
+        focused = root.focus_get()
+        if focused in buttons:
+            focused.invoke()
+
+    root.bind("<Up>", lambda _event: move_focus(-1))
+    root.bind("<Down>", lambda _event: move_focus(1))
+    for key in ("w", "W"):
+        root.bind(key, lambda _event: move_focus(-1))
+    for key in ("s", "S"):
+        root.bind(key, lambda _event: move_focus(1))
+    root.bind("<Return>", decide)
+    root.bind("<KP_Enter>", decide)
+    root.after(0, lambda: (root.focus_force(), buttons[0].focus_set()))
     root.mainloop()
     return chosen["value"]
