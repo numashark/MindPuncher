@@ -64,6 +64,21 @@ def backspace_pressed():
     return pyxel.btnp(pyxel.KEY_BACKSPACE)
 
 
+def mouse_position():
+    """マウスカーソルの位置を返す"""
+    return pyxel.mouse_x, pyxel.mouse_y
+
+
+def click_pressed():
+    """マウスの左ボタンが押されたかを返す"""
+    return pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT)
+
+
+def show_mouse(visible):
+    """マウスカーソルを表示するか消す"""
+    pyxel.mouse(visible)
+
+
 def typed_chars():
     """このフレームで入力された英大文字と数字を返す"""
     return "".join(ch for ch in NAME_CHARS if pyxel.btnp(getattr(pyxel, f"KEY_{ch}")))
