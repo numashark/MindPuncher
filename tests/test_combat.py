@@ -297,6 +297,15 @@ class TestCombat(unittest.TestCase):
         for _ in range(GAME_FRAMES):
             game.update(NO_INPUT)
         self.assertEqual(game.result, CLEAR)
+        self.assertEqual(game.survival_seconds(), 120)
+
+    def test_survival_seconds(self):
+        """生存時間はゲームが進んだフレーム数を秒にしたもの（1秒未満は切り捨て）"""
+        game = self.game
+        game.spawner.timer = 10 ** 9
+        for _ in range(60 * 3 + 59):
+            game.update(NO_INPUT)
+        self.assertEqual(game.survival_seconds(), 3)
 
 
 if __name__ == "__main__":
