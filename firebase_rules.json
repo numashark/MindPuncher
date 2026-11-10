@@ -13,6 +13,29 @@
         "$other": { ".validate": false }
       }
     },
+    "plays": {
+      ".read": true,
+      ".indexOn": ["score"],
+      "$id": {
+        ".write": "!data.exists()",
+        ".validate": "newData.hasChildren(['score', 'clear', 'bucket', 'time'])",
+        "score": { ".validate": "newData.isNumber() && newData.val() >= 0 && ((newData.parent().child('clear').val() == true && newData.val() >= 25000 && newData.val() <= 327100) || (newData.parent().child('clear').val() == false && newData.val() <= 302100))" },
+        "clear": { ".validate": "newData.isBoolean()" },
+        "bucket": { ".validate": "newData.isNumber() && newData.val() * 1000 <= newData.parent().child('score').val() && newData.parent().child('score').val() < (newData.val() + 1) * 1000 && newData.parent().parent().parent().child('scoreCounts').child('b' + newData.val()).child('last').val() == $id" },
+        "time": { ".validate": "newData.val() == now" },
+        "$other": { ".validate": false }
+      }
+    },
+    "scoreCounts": {
+      ".read": true,
+      "$bucket": {
+        ".write": "newData.exists()",
+        ".validate": "newData.hasChildren(['n', 'last']) && newData.child('n').val() == (data.exists() ? data.child('n').val() + 1 : 1) && !root.child('plays').child(newData.child('last').val()).exists() && 'b' + newData.parent().parent().child('plays').child(newData.child('last').val()).child('bucket').val() == $bucket",
+        "n": { ".validate": "newData.isNumber()" },
+        "last": { ".validate": "newData.isString() && newData.val().length > 0" },
+        "$other": { ".validate": false }
+      }
+    },
     "lastPost": {
       "$name": {
         ".write": "!data.exists() || now - data.val() >= 10000",
