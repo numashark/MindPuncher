@@ -6,10 +6,10 @@ from share import LOGO_ACCENT, LOGO_FILL, LOGO_OUTLINE, X_LOGO_SIZE, share_text,
 
 class TestShareText(unittest.TestCase):
     def test_game_over_text(self):
-        """ゲームオーバーのときはスコア、最大コンボ、生存時間、順位を書く"""
+        """ゲームオーバーのときはハッシュタグ、スコア、最大コンボ、生存時間、順位を書く"""
         self.assertEqual(
             share_text(12345, 23, 87, False, 5),
-            "MindPuncherをプレイ！\nスコア: 12345\n最大コンボ: 23\n生存時間: 87秒\n順位: 5位",
+            "#MindPuncher #ゲーム\nMindPuncherをプレイ！\nスコア: 12345\n最大コンボ: 23\n生存時間: 87秒\n順位: 5位",
         )
 
     def test_clear_text(self):

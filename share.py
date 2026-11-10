@@ -77,6 +77,7 @@ def share_text(score, max_combo, survival_seconds, cleared, rank):
     """Xに投稿する本文を作る。cleared がTrueなら生存時間の代わりにクリアと書き、rank がNoneなら順位の行を省く"""
     survival = "クリア！" if cleared else f"{survival_seconds}秒"
     lines = [
+        "#MindPuncher #ゲーム",
         "MindPuncherをプレイ！",
         f"スコア: {score}",
         f"最大コンボ: {max_combo}",
