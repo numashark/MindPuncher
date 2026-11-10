@@ -2,7 +2,7 @@ import json
 import sys
 from pathlib import Path
 
-from constants import BASE_DIR, DEFAULT_NAME, RANKING_FILE_NAME, RANKING_SIZE
+from constants import BASE_DIR, DEFAULT_NAME, RANKING_FILE_NAME, RANKING_SIZE, SCORE_BUCKET_SIZE
 
 
 def default_path():
@@ -65,6 +65,48 @@ def entry_name(name):
 def qualifies(ranking, score):
     """スコアが上位5名に入るかを返す"""
     return len(ranking) < RANKING_SIZE or score > ranking[-1]["score"]
+
+
+def rank(ranking, score):
+    """スコアが上位5件のランキングの中で何位か（1始まり、同点は同じ順位）を返す。上位5名に入らないときはNoneを返す"""
+    place = sum(1 for d in ranking if d["score"] > score) + 1
+    return place if place <= RANKING_SIZE else None
+
+
+def score_bucket(score):
+    """スコアが入る点数帯の番号を返す"""
+    return score // SCORE_BUCKET_SIZE
+
+
+def bucket_key(bucket):
+    """点数帯の番号から、データベースで件数を保存する場所の名前を返す"""
+    return f"b{bucket}"
+
+
+def count_buckets(entries):
+    """データベースの {ID: 1件} の辞書（1件にはスコアがあればよい）から、点数帯ごとの件数をデータベースに保存する形
+    {場所の名前: {"n": 件数, "last": その点数帯に最後に登録したID}} にして返す。読み取れない1件は数えない"""
+    counts = {}
+    for key in sorted(entries or {}):
+        try:
+            name = bucket_key(score_bucket(int(entries[key]["score"])))
+        except (KeyError, TypeError, ValueError, AttributeError):
+            continue
+        counts[name] = {"n": counts.get(name, {"n": 0})["n"] + 1, "last": str(key)}
+    return counts
+
+
+def count_higher(counts, score):
+    """点数帯ごとの件数から、スコアの点数帯より上の点数帯にあるスコアの件数の合計を返す"""
+    bucket = score_bucket(score)
+    total = 0
+    for name, d in (counts or {}).items():
+        try:
+            if int(name[1:]) > bucket:
+                total += int(d["n"])
+        except (KeyError, TypeError, ValueError):
+            continue
+    return total
 
 
 def insert(ranking, name, score, cleared):
