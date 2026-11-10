@@ -14,7 +14,7 @@
     width: 320px; padding: 14px; font-size: 20px; color: #fff; background: #29366f;
     border: 2px solid #fff; border-radius: 6px; cursor: pointer;
   }
-  #mode-select button:hover { background: #3b5dc9; }
+  #mode-select button:hover, #mode-select button:focus { background: #3b5dc9; outline: 3px solid #ffd34e; }
 </style>
 <script src="https://cdn.jsdelivr.net/gh/kitao/pyxel@2.9.6/wasm/pyxel.js"></script>
 <script src="firebase_config.js"></script>
@@ -39,10 +39,53 @@
 <div id="mode-select">
   <h1>MindPuncher</h1>
   <p>がめんモードを えらんでください</p>
-  <button onclick="start(false)">ウィンドウ (800×600)</button>
+  <p>↑↓ / W S: えらぶ　Enter / Space: けってい</p>
+  <button onclick="start(false)" autofocus>ウィンドウ (800×600)</button>
   <button onclick="start(true)">フルスクリーン (1920×1080)</button>
 </div>
 <script>
+  const START_KEYS = ["Enter", "NumpadEnter", " "];
+  const UP_CODES = ["ArrowUp", "KeyW"];
+  const DOWN_CODES = ["ArrowDown", "KeyS"];
+  const CLICK_TO_START_IMAGE = "click_to_start";
+  const ENTER_TO_START_IMAGE = "enter_to_start_114x14.png";
+
+  // 起動ページのボタンを上下キー/W Sキーで選び、Pyxelの「CLICK TO START」をEnter/Spaceキーでも進められるようにする
+  document.addEventListener("keydown", (event) => {
+    const modeSelect = document.getElementById("mode-select");
+    if (modeSelect) {
+      const buttons = [...modeSelect.querySelectorAll("button")];
+      if (UP_CODES.includes(event.code) || DOWN_CODES.includes(event.code)) {
+        event.preventDefault();
+        const index = Math.max(buttons.indexOf(document.activeElement), 0);
+        const step = UP_CODES.includes(event.code) ? -1 : 1;
+        buttons[(index + step + buttons.length) % buttons.length].focus();
+      } else if (START_KEYS.includes(event.key) && !buttons.includes(document.activeElement)) {
+        event.preventDefault();
+        buttons[0].click();
+      }
+      return;
+    }
+    const resolveInput = window.pyxelContext && window.pyxelContext.resolveInput;
+    if (resolveInput && START_KEYS.includes(event.key) && !event.repeat) {
+      event.preventDefault();
+      resolveInput();
+    }
+  });
+
+  // Pyxelが出す「CLICK TO START」の画像を「ENTER TO START」の画像に差し替える（タッチ端末の「TOUCH TO START」はそのまま）
+  new MutationObserver(() => {
+    const prompt = document.getElementById("pyxel-prompt");
+    if (prompt && prompt.src.includes(CLICK_TO_START_IMAGE)) {
+      prompt.src = ENTER_TO_START_IMAGE;
+    }
+  }).observe(document.documentElement, { childList: true, subtree: true });
+
+  window.addEventListener("load", () => {
+    const first = document.querySelector("#mode-select button");
+    if (first) first.focus();
+  });
+
   function start(fullscreen) {
     window.mindPuncherFullscreen = fullscreen;
     if (fullscreen && document.documentElement.requestFullscreen) {
