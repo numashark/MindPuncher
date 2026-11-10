@@ -167,6 +167,16 @@ LOADING_TEXT = "よみこみちゅう..."
 
 MENU_ITEMS = ("ゲームスタート", "あそびかた", "ランキング")
 
+SHARE_INTENT_URL = "https://x.com/intent/tweet"
+SHARE_GAME_URL = "https://numashark.github.io/MindPuncher/"
+SHARE_BUTTON_TEXT = "Xでシェア"
+# シェアボタンの左上の位置と、文字の周りの余白
+SHARE_BUTTON_X = int(20 * SCALE)
+SHARE_BUTTON_Y = int(SCREEN_HEIGHT * 0.9)
+SHARE_BUTTON_PADDING = int(8 * SCALE)
+COLOR_SHARE_BUTTON = 13
+COLOR_SHARE_BUTTON_HOVER = 10
+
 COLOR_BACKGROUND = 1
 COLOR_GROUND = 4
 COLOR_GROUND_LINE = 9

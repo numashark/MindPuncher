@@ -57,10 +57,11 @@ class App:
         from scenes.play import PlayScene
         self.scene = PlayScene(self)
 
-    def show_result(self, score, max_combo, cleared):
-        """スコア確認画面に移る。max_combo はプレイ中の最大コンボ数、cleared はゲームクリアしたかどうか"""
+    def show_result(self, score, max_combo, cleared, survival_seconds):
+        """スコア確認画面に移る。max_combo はプレイ中の最大コンボ数、cleared はゲームクリアしたかどうか、
+        survival_seconds は生き残った秒数"""
         from scenes.result import ResultScene
-        self.scene = ResultScene(self, score, max_combo, cleared)
+        self.scene = ResultScene(self, score, max_combo, cleared, survival_seconds)
 
     def save_score(self, name, score, cleared):
         """スコアをランキングに登録して保存し、登録された順位（0始まり）を返す。cleared はゲームクリアしたかどうか"""
