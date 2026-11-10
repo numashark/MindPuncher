@@ -169,13 +169,19 @@ MENU_ITEMS = ("ゲームスタート", "あそびかた", "ランキング")
 
 SHARE_INTENT_URL = "https://x.com/intent/tweet"
 SHARE_GAME_URL = "https://numashark.github.io/MindPuncher/"
-SHARE_BUTTON_TEXT = "Xでシェア"
-# シェアボタンの左上の位置と、文字の周りの余白
+SHARE_BUTTON_TEXT = "でシェア"
+# シェアボタンの左上の位置
 SHARE_BUTTON_X = int(20 * SCALE)
-SHARE_BUTTON_Y = int(SCREEN_HEIGHT * 0.9)
-SHARE_BUTTON_PADDING = int(8 * SCALE)
-COLOR_SHARE_BUTTON = 13
-COLOR_SHARE_BUTTON_HOVER = 10
+SHARE_BUTTON_Y = int(SCREEN_HEIGHT * 0.85)
+# Xのロゴのドット1つの大きさ（画面上のピクセル数）
+SHARE_LOGO_DOT = max(1, round(3 * SCALE))
+# Xのロゴと「でシェア」の文字の間隔
+SHARE_TEXT_GAP = int(4 * SCALE)
+COLOR_SHARE_LOGO_FILL = 0
+COLOR_SHARE_LOGO_OUTLINE = 7
+COLOR_SHARE_LOGO_ACCENT = 6
+COLOR_SHARE_TEXT = 7
+COLOR_SHARE_HOVER = 10
 
 COLOR_BACKGROUND = 1
 COLOR_GROUND = 4

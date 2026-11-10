@@ -5,9 +5,10 @@ import ranking
 import screen_mode
 import share
 from constants import (
-    CENTER_X, COLOR_ACCENT, COLOR_SHARE_BUTTON, COLOR_SHARE_BUTTON_HOVER, COLOR_SUB_TEXT, COLOR_TEXT,
-    CONNECTION_ERROR_TEXT, FONT_SIZES, LOADING_TEXT, NAME_MAX_LENGTH, RESULT_INPUT_LOCK_FRAMES, SCALE, SCREEN_HEIGHT,
-    SHARE_BUTTON_PADDING, SHARE_BUTTON_TEXT, SHARE_BUTTON_X, SHARE_BUTTON_Y,
+    CENTER_X, COLOR_ACCENT, COLOR_SHARE_HOVER, COLOR_SHARE_LOGO_ACCENT, COLOR_SHARE_LOGO_FILL,
+    COLOR_SHARE_LOGO_OUTLINE, COLOR_SHARE_TEXT, COLOR_SUB_TEXT, COLOR_TEXT, CONNECTION_ERROR_TEXT, FONT_SIZES,
+    LOADING_TEXT, NAME_MAX_LENGTH, RESULT_INPUT_LOCK_FRAMES, SCALE, SCREEN_HEIGHT, SHARE_BUTTON_TEXT, SHARE_BUTTON_X,
+    SHARE_BUTTON_Y, SHARE_LOGO_DOT, SHARE_TEXT_GAP,
 )
 from render import draw_stage
 from score import clear_bonus
@@ -87,9 +88,10 @@ class ResultScene:
         return share.share_text(self.score, self.max_combo, self.survival_seconds, self.cleared, self.rank)
 
     def share_button_rect(self):
-        """シェアボタンの左上の位置と幅・高さを返す"""
-        w = text_width(SHARE_BUTTON_TEXT) + SHARE_BUTTON_PADDING * 2
-        h = FONT_SIZES["s"] + SHARE_BUTTON_PADDING * 2
+        """シェアボタン（Xのロゴとその下の文字）全体の左上の位置と幅・高さを返す"""
+        logo_size = share.X_LOGO_SIZE * SHARE_LOGO_DOT
+        w = max(logo_size, text_width(SHARE_BUTTON_TEXT))
+        h = logo_size + SHARE_TEXT_GAP + FONT_SIZES["s"]
         return SHARE_BUTTON_X, SHARE_BUTTON_Y, w, h
 
     def share_hovered(self):
@@ -99,12 +101,22 @@ class ResultScene:
         return x <= mx < x + w and y <= my < y + h
 
     def draw_share_button(self):
-        """枠で囲ったシェアボタンを描画する。マウスが乗っているときは色を変える"""
-        x, y, w, h = self.share_button_rect()
-        color = COLOR_SHARE_BUTTON_HOVER if self.share_hovered() else COLOR_SHARE_BUTTON
-        pyxel.rect(x, y, w, h, 0)
-        pyxel.rectb(x, y, w, h, color)
-        draw_text(x + SHARE_BUTTON_PADDING, y + SHARE_BUTTON_PADDING, SHARE_BUTTON_TEXT, color)
+        """ドット絵のXのロゴと、その下に「でシェア」の文字を描画する。
+        マウスが乗っているときはロゴの白い縁取りと文字を黄色にする"""
+        x, y, w, _ = self.share_button_rect()
+        hovered = self.share_hovered()
+        colors = {
+            share.LOGO_FILL: COLOR_SHARE_LOGO_FILL,
+            share.LOGO_OUTLINE: COLOR_SHARE_HOVER if hovered else COLOR_SHARE_LOGO_OUTLINE,
+            share.LOGO_ACCENT: COLOR_SHARE_LOGO_ACCENT,
+        }
+        logo_size = share.X_LOGO_SIZE * SHARE_LOGO_DOT
+        logo_x = x + (w - logo_size) // 2
+        for (dx, dy), kind in share.x_logo_dots().items():
+            pyxel.rect(logo_x + dx * SHARE_LOGO_DOT, y + dy * SHARE_LOGO_DOT, SHARE_LOGO_DOT, SHARE_LOGO_DOT,
+                       colors[kind])
+        draw_text(x + w // 2, y + logo_size + SHARE_TEXT_GAP, SHARE_BUTTON_TEXT,
+                  COLOR_SHARE_HOVER if hovered else COLOR_SHARE_TEXT, center=True)
 
     def draw(self):
         """スコアと名前入力欄を描画する。読み込み中は読み込み中の表示だけを出す"""
