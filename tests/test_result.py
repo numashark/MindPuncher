@@ -41,10 +41,20 @@ class TestResultLoading(unittest.TestCase):
         self.assertTrue(scene.loading)
         self.assertEqual(app.ranking_store.calls, [])
 
-    def test_loads_on_first_update(self):
-        """最初の更新でランキングの読み込み・プレイの記録・順位の計算を行う"""
+    def test_waits_until_loading_text_is_drawn(self):
+        """読み込み中の表示を描画するまでは、更新が呼ばれても読み込みを行わない"""
         app = FakeApp()
         scene = ResultScene(app, 1000, 3, False)
+        scene.update()
+        scene.update()
+        self.assertTrue(scene.loading)
+        self.assertEqual(app.ranking_store.calls, [])
+
+    def test_loads_after_loading_text_is_drawn(self):
+        """読み込み中の表示を描画した後の更新でランキングの読み込み・プレイの記録・順位の計算を行う"""
+        app = FakeApp()
+        scene = ResultScene(app, 1000, 3, False)
+        scene.loading_drawn = True
         scene.update()
         self.assertFalse(scene.loading)
         self.assertEqual(app.ranking_store.calls, ["load", "record_play", "rank"])
@@ -57,6 +67,7 @@ class TestResultLoading(unittest.TestCase):
         app = FakeApp()
         app.ranking_store.load = lambda: [{"name": "A", "score": 99999, "clear": False}] * 5
         scene = ResultScene(app, 1000, 3, False)
+        scene.loading_drawn = True
         scene.update()
         self.assertFalse(scene.entering)
         with mock.patch("controls.decide_pressed", return_value=True):

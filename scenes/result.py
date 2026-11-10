@@ -14,7 +14,7 @@ from text import draw_clear_mark, draw_text, text_width
 class ResultScene:
     def __init__(self, app, score, max_combo, cleared):
         """スコア確認画面を作る。ゲームクリアしていたらボーナス点を加える。
-        ランキングの読み込みなどは時間がかかるので、読み込み中の表示を出してから次のフレームで行う。
+        ランキングの読み込みなどは時間がかかるので、読み込み中の表示を描画してから行う。
         max_combo はプレイ中の最大コンボ数"""
         self.app = app
         self.max_combo = max_combo
@@ -23,6 +23,7 @@ class ResultScene:
         self.bonus = clear_bonus(cleared)
         self.score = score + self.bonus
         self.loading = True
+        self.loading_drawn = False
         self.input_lock = 0
         self.rank = None
         self.rank_error = False
@@ -40,8 +41,11 @@ class ResultScene:
 
     def update(self):
         """読み込み、名前入力とランキングへの保存、画面の移動を処理する。
+        読み込みは読み込み中の表示を描画した後に行う（1回の描画の間に更新が複数回呼ばれることがあるため）。
         読み込み中と読み込みが終わってからしばらくの間は操作を受け付けない"""
         if self.loading:
+            if not self.loading_drawn:
+                return
             self.load()
             self.loading = False
             self.input_lock = RESULT_INPUT_LOCK_FRAMES
@@ -68,6 +72,7 @@ class ResultScene:
         draw_text(CENTER_X, SCREEN_HEIGHT * 0.12, "RESULT", COLOR_ACCENT, "l", center=True)
         if self.loading:
             draw_text(CENTER_X, SCREEN_HEIGHT * 0.45, LOADING_TEXT, COLOR_TEXT, "m", center=True)
+            self.loading_drawn = True
             return
         if self.bonus:
             draw_text(CENTER_X, SCREEN_HEIGHT * 0.21, f"SCORE {self.base_score}", COLOR_TEXT, "m", center=True)
