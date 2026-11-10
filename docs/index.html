@@ -39,22 +39,24 @@
 <div id="mode-select">
   <h1>MindPuncher</h1>
   <p>がめんモードを えらんでください</p>
-  <p>↑↓: えらぶ　Enter / Space: けってい</p>
+  <p>↑↓ / W S: えらぶ　Enter / Space: けってい</p>
   <button onclick="start(false)" autofocus>ウィンドウ (800×600)</button>
   <button onclick="start(true)">フルスクリーン (1920×1080)</button>
 </div>
 <script>
   const START_KEYS = ["Enter", "NumpadEnter", " "];
+  const UP_CODES = ["ArrowUp", "KeyW"];
+  const DOWN_CODES = ["ArrowDown", "KeyS"];
 
-  // 起動ページのボタンを上下キーで選び、Pyxelの「CLICK TO START」をEnter/Spaceキーでも進められるようにする
+  // 起動ページのボタンを上下キー/W Sキーで選び、Pyxelの「CLICK TO START」をEnter/Spaceキーでも進められるようにする
   document.addEventListener("keydown", (event) => {
     const modeSelect = document.getElementById("mode-select");
     if (modeSelect) {
       const buttons = [...modeSelect.querySelectorAll("button")];
-      if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+      if (UP_CODES.includes(event.code) || DOWN_CODES.includes(event.code)) {
         event.preventDefault();
         const index = Math.max(buttons.indexOf(document.activeElement), 0);
-        const step = event.key === "ArrowUp" ? -1 : 1;
+        const step = UP_CODES.includes(event.code) ? -1 : 1;
         buttons[(index + step + buttons.length) % buttons.length].focus();
       } else if (START_KEYS.includes(event.key) && !buttons.includes(document.activeElement)) {
         event.preventDefault();
