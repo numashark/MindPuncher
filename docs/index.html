@@ -19,19 +19,26 @@
 <script src="https://cdn.jsdelivr.net/gh/kitao/pyxel@2.9.6/wasm/pyxel.js"></script>
 <script src="firebase_config.js"></script>
 <script type="module">
-  // App Checkのトークンを取得し、ゲーム（Python）から読めるように window に置く
+  // App Checkのトークンを取得し、ゲーム（Python）から読めるように window に置く。測定IDがあればGoogleアナリティクスで閲覧を計測する
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
   import {
     initializeAppCheck, ReCaptchaEnterpriseProvider, onTokenChanged,
   } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app-check.js";
+  import { getAnalytics, isSupported } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics.js";
 
-  const { recaptchaSiteKey, ...options } = window.mindPuncherFirebase || {};
-  if (options.apiKey && recaptchaSiteKey) {
-    const appCheck = initializeAppCheck(initializeApp(options), {
-      provider: new ReCaptchaEnterpriseProvider(recaptchaSiteKey),
-      isTokenAutoRefreshEnabled: true,
-    });
-    onTokenChanged(appCheck, (result) => { window.mindPuncherAppCheckToken = result.token; });
+  const { recaptchaSiteKey, measurementId, ...options } = window.mindPuncherFirebase || {};
+  if (options.apiKey) {
+    const app = initializeApp(measurementId ? { ...options, measurementId } : options);
+    if (recaptchaSiteKey) {
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaEnterpriseProvider(recaptchaSiteKey),
+        isTokenAutoRefreshEnabled: true,
+      });
+      onTokenChanged(appCheck, (result) => { window.mindPuncherAppCheckToken = result.token; });
+    }
+    if (measurementId) {
+      isSupported().then((supported) => { if (supported) getAnalytics(app); }).catch(() => {});
+    }
   }
 </script>
 </head>
