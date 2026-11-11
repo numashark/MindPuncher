@@ -8,6 +8,6 @@ window.mindPuncherFirebase = {
   databaseURL: "https://mind-puncher-default-rtdb.firebaseio.com",
   projectId: "mind-puncher",
   appId: "1:758491651569:web:463b3a3506f4b0bb2ab850",
-  measurementId: "",
+  measurementId: "G-WEBEP02LRT",
   recaptchaSiteKey: "6Lcy9hUuAAAAAOzvg8FtupTmCFDpCWGesZtoBOZX",
 };
